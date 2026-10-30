@@ -5,9 +5,9 @@ Chrome 152.0.7977.54 (for Testing, x64) + Windows 10 19045 实测：
 
 快速开始
 --------
-  cd chain-87491-85046-78952-WIN/poc
+  cd windows/chain-87491-85046-78952-WIN/poc
   ./run_chain.sh                 # 一键循环直到 calc/notepad 弹出（= OS 沙箱逃逸）
-                                 # chrome 自动取仓库 shared/chrome/chrome-win64-152.0.7977.54
+                                 # chrome 自动取仓库 windows/shared/chrome/chrome-win64-152.0.7977.54
                                  # 可用环境变量覆盖：CHROME_EXE=/path/to/chrome.exe ./run_chain.sh
   ./rate_w4.sh 30                # 可选：分阶段成功率统计
 

@@ -20,7 +20,7 @@
 ## 复现（自包含，零硬编码本地路径）
 
 ```bash
-cd chain-87491-85046-78952-WIN/poc
+cd windows/chain-87491-85046-78952-WIN/poc
 
 # 一键到胜：自动拉起 runner(本地 HTTP) + 循环直到 calc/notepad 弹出
 ./run_chain.sh              # 默认 60 轮；./run_chain.sh 30 限定轮数
@@ -28,7 +28,7 @@ cd chain-87491-85046-78952-WIN/poc
 ```
 
 - 目标 chrome 解析顺序：`CHROME_EXE` 环境变量 → 仓库
-  `shared/chrome/chrome-win64-152.0.7977.54/chrome-win64/chrome.exe`（自动）；
+  `windows/shared/chrome/chrome-win64-152.0.7977.54/chrome-win64/chrome.exe`（自动）；
 - stage-2（poc.exe+evil.dll）由 payload 用系统 curl 从页面同源服务器拉到 `%TEMP%`，
   目标机零预置；origin/chrome 路径/TEMP 全部运行期自取；
 - 运行残留（chrome profile、runner 日志、端口文件）落

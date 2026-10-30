@@ -319,7 +319,7 @@ v3 的尸检数据（正是它证明了"渲染器内落盘"可行，也证明了
 ## 8. 复现手册
 
 ```bash
-cd chain-87491-85046-78952-WIN/poc
+cd windows/chain-87491-85046-78952-WIN/poc
 
 # 首次：编译本地 HTTP 服务（缺 -lws2_32 会报 WSAStartup 链接错误）
 clang -o runner.exe runner.c -lws2_32

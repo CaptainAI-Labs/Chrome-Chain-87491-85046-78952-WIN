@@ -1,6 +1,6 @@
 #!/bin/bash
 # run_chain.sh — 一键全链演示（v4）：循环直到 calc/notepad 弹出 = OS 沙箱逃逸
-# 自包含：目标 chrome 解析顺序 CHROME_EXE 环境变量 > 仓库 shared/chrome 默认构建
+# 自包含：目标 chrome 解析顺序 CHROME_EXE 环境变量 > 仓库 windows/shared/chrome 默认构建
 #        （../../shared/chrome/chrome-win64-152.0.7977.54/chrome-win64/chrome.exe）；
 #        stage-2 由 curl 同源自动拉取，零本地预置，零机器专属绝对路径。
 PKG="$(cd "$(dirname "$0")" && pwd)"
