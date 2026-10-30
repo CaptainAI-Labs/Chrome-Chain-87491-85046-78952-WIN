@@ -1,0 +1,8 @@
+[chain] http://127.0.0.1:8765/ 服务就绪  chrome=F:\Chrome\shared\chrome\chrome-win64-152.0.7977.54\chrome-win64\chrome.exe
+round1 fail-fast
+round2 fail-fast
+round3 fail-fast
+round4 fail-fast
+round5 fail-fast
+round6 fail-fast
+=== FULL-CHAIN WIN round7 (209s) ===

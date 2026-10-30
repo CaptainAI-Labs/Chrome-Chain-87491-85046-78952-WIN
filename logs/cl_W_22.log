@@ -1,0 +1,20 @@
+[15384:9436:1020/224904.260:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
+[15384:9436:1020/224904.261:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
+[22920:20988:1020/224904.318:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
+[22920:20988:1020/224904.318:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
+[25656:22788:1020/224904.339:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
+[25656:22788:1020/224904.339:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
+[26536:16396:1020/224904.378:INFO:CONSOLE:40] "GCDBG addrof 117d1d9 117d2a9 sane=true", source: http://127.0.0.1:8765/stage1w.js (40)
+[26536:16396:1020/224904.379:INFO:CONSOLE:43] "ST1 begin", source: http://127.0.0.1:8765/stage1w.js (43)
+[26536:16396:1020/224904.381:INFO:CONSOLE:64] "ST1 reclaim hit=14", source: http://127.0.0.1:8765/stage1w.js (64)
+[26536:16396:1020/224904.381:INFO:CONSOLE:66] "ST1 fakeobj ok", source: http://127.0.0.1:8765/stage1w.js (66)
+[26536:16396:1020/224904.381:INFO:CONSOLE:75] "ST1 cage_rw ready", source: http://127.0.0.1:8765/stage1w.js (75)
+[26536:16396:1020/224904.381:INFO:CONSOLE:79] "ST1 proof 13.37=13.37", source: http://127.0.0.1:8765/stage1w.js (79)
+[26536:16396:1020/224904.402:INFO:CONSOLE:147] "MAIN start", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
+[26536:16396:1020/224904.406:INFO:CONSOLE:56] "BOOT inst a/d ok", source: http://127.0.0.1:8765/pocwin_full_w4.js (56)
+[26536:16396:1020/224904.407:INFO:CONSOLE:61] "BOOT pads compiled", source: http://127.0.0.1:8765/pocwin_full_w4.js (61)
+[26536:16396:1020/224904.407:INFO:CONSOLE:147] "MAIN boot done", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
+[13132:17992:1020/224904.417:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
+[13132:17992:1020/224904.417:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
+[7136:7396:1020/224904.435:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
+[7136:7396:1020/224904.435:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.

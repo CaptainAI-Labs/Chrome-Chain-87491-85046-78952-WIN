@@ -1,0 +1,31 @@
+[1104:4388:1020/231242.160:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
+[1104:4388:1020/231242.160:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
+[20196:2184:1020/231242.198:ERROR:ui\gl\direct_composition_support.cc:625] AMD VideoProcessorGetOutputExtension failed: 未指定的错误 (0x80004005)
+[4840:15228:1020/231242.218:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
+[4840:15228:1020/231242.218:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
+[9652:24012:1020/231242.243:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
+[9652:24012:1020/231242.243:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
+[2516:20144:1020/231242.321:INFO:CONSOLE:40] "GCDBG addrof 117d485 117d555 sane=true", source: http://127.0.0.1:8765/stage1w.js (40)
+[2516:20144:1020/231242.322:INFO:CONSOLE:43] "ST1 begin", source: http://127.0.0.1:8765/stage1w.js (43)
+[2516:20144:1020/231242.325:INFO:CONSOLE:64] "ST1 reclaim hit=14", source: http://127.0.0.1:8765/stage1w.js (64)
+[2516:20144:1020/231242.325:INFO:CONSOLE:66] "ST1 fakeobj ok", source: http://127.0.0.1:8765/stage1w.js (66)
+[2516:20144:1020/231242.325:INFO:CONSOLE:75] "ST1 cage_rw ready", source: http://127.0.0.1:8765/stage1w.js (75)
+[2516:20144:1020/231242.325:INFO:CONSOLE:79] "ST1 proof 13.37=13.37", source: http://127.0.0.1:8765/stage1w.js (79)
+[15292:25772:1020/231242.340:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
+[15292:25772:1020/231242.340:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
+[2516:20144:1020/231242.348:INFO:CONSOLE:147] "MAIN start", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
+[2516:20144:1020/231242.355:INFO:CONSOLE:56] "BOOT inst a/d ok", source: http://127.0.0.1:8765/pocwin_full_w4.js (56)
+[2516:20144:1020/231242.356:INFO:CONSOLE:61] "BOOT pads compiled", source: http://127.0.0.1:8765/pocwin_full_w4.js (61)
+[2516:20144:1020/231242.356:INFO:CONSOLE:147] "MAIN boot done", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
+[15592:19788:1020/231242.359:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
+[15592:19788:1020/231242.359:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
+[2516:20144:1020/231242.364:INFO:CONSOLE:147] "MAIN getter done", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
+[2516:20144:1020/231242.365:INFO:CONSOLE:100] "ALIAS-TRY mi=6", source: http://127.0.0.1:8765/pocwin_full_w4.js (100)
+[2516:20144:1020/231242.365:INFO:CONSOLE:102] "ALIAS jumps=16", source: http://127.0.0.1:8765/pocwin_full_w4.js (102)
+[2516:20144:1020/231242.366:INFO:CONSOLE:147] "ALIAS OK body=0x1980", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
+[2516:20144:1020/231242.366:INFO:CONSOLE:121] "PRE-DEPLOY base=0x18e2 len=2617", source: http://127.0.0.1:8765/pocwin_full_w4.js (121)
+[2516:20144:1020/231242.367:INFO:CONSOLE:127] "WROTE blob", source: http://127.0.0.1:8765/pocwin_full_w4.js (127)
+[2516:20144:1020/231242.367:INFO:CONSOLE:133] "VERIFY bad4=0", source: http://127.0.0.1:8765/pocwin_full_w4.js (133)
+[2516:20144:1020/231242.367:INFO:CONSOLE:143] "ORIGIN-OK=true DEPLOYED at 0x18e2, firing callOld...", source: http://127.0.0.1:8765/pocwin_full_w4.js (143)
+[21532:17736:1020/231342.392:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
+[21532:17736:1020/231342.392:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.

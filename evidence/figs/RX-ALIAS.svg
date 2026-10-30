@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560" font-family="'Segoe UI','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#455a64"/>
+    </marker>
+  </defs>
+  <rect width="960" height="560" fill="#fafafa"/>
+  <text x="480" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#263238">跳表别名：cage 读写 → RX 代码区可写 → blob 部署布局</text>
+
+  <!-- left: mechanism -->
+  <text x="245" y="62" text-anchor="middle" font-size="14" font-weight="bold" fill="#0d47a1">别名机制（memory index 6 OOB）</text>
+  <rect x="30" y="80" width="190" height="86" rx="6" fill="#e3f2fd" stroke="#1565c0"/>
+  <text x="125" y="103" text-anchor="middle" font-size="12" font-weight="bold" fill="#0d47a1">实例 A（1 个 memory）</text>
+  <text x="125" y="124" text-anchor="middle" font-size="10.5" fill="#1565c0">编译期代码绑定 A 的</text>
+  <text x="125" y="140" text-anchor="middle" font-size="10.5" fill="#1565c0">instance data（过期 trusted）</text>
+  <text x="125" y="156" text-anchor="middle" font-size="10.5" fill="#1565c0">memory[6] 槽位越界读</text>
+
+  <rect x="270" y="80" width="190" height="86" rx="6" fill="#e8eaf6" stroke="#3949ab"/>
+  <text x="365" y="103" text-anchor="middle" font-size="12" font-weight="bold" fill="#1a237e">实例 D（7 个 memory）</text>
+  <text x="365" y="124" text-anchor="middle" font-size="10.5" fill="#283593">write 函数以 mi=6 访存</text>
+  <text x="365" y="140" text-anchor="middle" font-size="10.5" fill="#283593">伪造 getter 换入 D 的代码</text>
+  <text x="365" y="156" text-anchor="middle" font-size="10.5" fill="#283593">optimized 后 stale-instance</text>
+
+  <line x1="222" y1="123" x2="268" y2="123" stroke="#455a64" stroke-width="1.5" marker-end="url(#ar)"/>
+  <text x="245" y="115" text-anchor="middle" font-size="9.5" fill="#455a64">stale</text>
+
+  <rect x="30" y="190" width="430" height="90" rx="6" fill="#fff3e0" stroke="#e65100"/>
+  <text x="245" y="213" text-anchor="middle" font-size="12" font-weight="bold" fill="#bf360c">效果：i64.store 基址落在 wasm 代码区（trap-handler 兜底，无显式边界检查）</text>
+  <text x="245" y="234" text-anchor="middle" font-size="11" fill="#e65100" font-family="Consolas,monospace">arwWrite(off, val) → 代码区偏移 off 处写 4 字节</text>
+  <text x="245" y="254" text-anchor="middle" font-size="11" fill="#e65100" font-family="Consolas,monospace">arwRead(off)        → 读回（字节校验 VERIFY bad4=0）</text>
+  <text x="245" y="272" text-anchor="middle" font-size="10.5" fill="#bf360c">写入窗口 = 别名基址起的连续已提交映射（实测两块各 ~36KB，坑：垫函数不能加多）</text>
+
+  <!-- right: region layout -->
+  <text x="715" y="62" text-anchor="middle" font-size="14" font-weight="bold" fill="#0d47a1">代码区布局（round 实测）</text>
+  <rect x="520" y="80" width="400" height="200" rx="6" fill="white" stroke="#546e7a"/>
+  <rect x="520" y="80" width="400" height="26" fill="#cfd8dc"/>
+  <text x="720" y="98" text-anchor="middle" font-size="11" fill="#37474f">0x000 – 0x400 跳转 stub 区（jmp rel32，别名发现在这里找 e9）</text>
+  <rect x="520" y="106" width="400" height="40" fill="#ffebee"/>
+  <text x="720" y="124" text-anchor="middle" font-size="11" fill="#b71c1c">0x400 – ~0x1300 核心函数体（driver/old/read/write/spray/callOld）</text>
+  <text x="720" y="140" text-anchor="middle" font-size="10.5" fill="#b71c1c">部署区必须避开 → 验收下限 body ≥ 0x1300</text>
+  <rect x="520" y="146" width="400" height="46" fill="#e8f5e9"/>
+  <text x="720" y="165" text-anchor="middle" font-size="11" fill="#1b5e20">~0x1300 起：10 个胖垫函数体（每个 ~300B，专作部署空地）</text>
+  <text x="720" y="182" text-anchor="middle" font-size="10.5" fill="#1b5e20">v3 教训：加到 130 个虽能撑出 64KB，但扰动堆布局 → 3%/轮</text>
+  <rect x="520" y="192" width="400" height="36" fill="#ede7f6"/>
+  <text x="720" y="208" text-anchor="middle" font-size="11" fill="#4527a0">实测映射：[0x400,0x9000) 与 [0xF000,0x18000) 两块（其余未提交 → arwRead 抛 EXC）</text>
+  <text x="720" y="224" text-anchor="middle" font-size="10.5" fill="#4527a0">v4 blob 仅 2.6KB，任何一块都绰绰有余</text>
+  <rect x="520" y="228" width="400" height="52" fill="#f5f5f5"/>
+  <text x="720" y="248" text-anchor="middle" font-size="11" fill="#37474f">0x9000–0xF000 洞 / 0x18000 以上未提交（不可写）</text>
+  <text x="720" y="266" text-anchor="middle" font-size="10.5" fill="#616161">探测器：pocwin_probe.js 逐页 arwRead 绘制（本文方法论之一）</text>
+
+  <!-- bottom: blob layout -->
+  <text x="480" y="318" text-anchor="middle" font-size="14" font-weight="bold" fill="#0d47a1">payload_w4 blob 布局（2617 字节 = 0xA39，写到 base = body − 0x9E）</text>
+  <rect x="60" y="340" width="840" height="70" rx="6" fill="white" stroke="#546e7a" stroke-width="1.5"/>
+  <rect x="60"  y="340" width="150" height="70" fill="#ffcdd2"/>
+  <rect x="210" y="340" width="230" height="70" fill="#bbdefb"/>
+  <rect x="440" y="340" width="130" height="70" fill="#c8e6c9"/>
+  <rect x="570" y="340" width="330" height="70" fill="#e1bee7"/>
+  <text x="135" y="368" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#b71c1c">flip stub @0x000</text>
+  <text x="135" y="386" text-anchor="middle" font-size="10" fill="#b71c1c">翻页线程（0x9D B）</text>
+  <text x="325" y="362" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#0d47a1">payload_main @0x09E</text>
+  <text x="325" y="380" text-anchor="middle" font-size="10" fill="#0d47a1">IAT 自解析 + curl 五步舞</text>
+  <text x="325" y="396" text-anchor="middle" font-size="10" fill="#0d47a1">（all_inline，无占位 call）</text>
+  <text x="505" y="362" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#1b5e20">g_names @0x8xx</text>
+  <text x="505" y="380" text-anchor="middle" font-size="10" fill="#1b5e20">5 个导出名（含 NUL）</text>
+  <text x="505" y="396" text-anchor="middle" font-size="10" fill="#1b5e20">按偏移索引</text>
+  <text x="735" y="362" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#6a1b9a">g_origin 洞 @0x950（72B）+ 命令片段</text>
+  <text x="735" y="380" text-anchor="middle" font-size="10" fill="#6a1b9a">JS 注入 location.origin（默认哨兵 "http\0"）</text>
+  <text x="735" y="396" text-anchor="middle" font-size="10" fill="#6a1b9a">payload volatile 读 → 防常量折叠</text>
+
+  <line x1="735" y1="430" x2="735" y2="470" stroke="#6a1b9a" stroke-width="1.8" marker-end="url(#ar)"/>
+  <text x="735" y="490" text-anchor="middle" font-size="10.5" fill="#6a1b9a" font-family="Consolas,monospace">for(i=0;i&lt;org.length;i+=4) arwWrite(base+0x950+i, u32)</text>
+
+  <rect x="60" y="505" width="840" height="40" rx="6" fill="#eceff1" stroke="#78909c"/>
+  <text x="480" y="523" text-anchor="middle" font-size="11" fill="#37474f">验收三重门：marker 回读（callOld 经劫持 stub 返回魔数）→ body∈[0x1300,0xE000] → 部署后整 blob 字节校验</text>
+  <text x="480" y="539" text-anchor="middle" font-size="11" fill="#37474f" font-family="Consolas,monospace">"VERIFY bad4=0" 才允许点火 —— 杜绝"写坏一半照跑"的幽灵失败</text>
+</svg>

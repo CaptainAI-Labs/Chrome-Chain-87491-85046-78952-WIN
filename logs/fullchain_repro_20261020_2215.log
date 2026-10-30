@@ -1,0 +1,22 @@
+[chain] http://127.0.0.1:8765/ 服务就绪  chrome=F:\Chrome\shared\chrome\chrome-win64-152.0.7977.54\chrome-win64\chrome.exe
+round1 fail-fast
+round2 fail-fast
+round3 fail-fast
+round4 fail-fast
+round5 dep-miss
+round6 fail-fast
+round7 fail-fast
+round8 fail-fast
+round9 dep-miss
+round10 fail-fast
+round11 fail-fast
+round12 fail-fast
+round13 fail-fast
+round14 fail-fast
+round15 dep-miss
+round16 fail-fast
+round17 fail-fast
+round18 fail-fast
+round19 fail-fast
+round20 fail-fast
+no win in 20 rounds

