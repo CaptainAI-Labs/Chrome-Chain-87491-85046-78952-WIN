@@ -5,7 +5,7 @@
 > **性质**：授权隔离研究环境下的公开 n-day 复现与武器化研究，所有目标均为本地测试构建，不涉及任何真实第三方系统
 > **最终形态**：受害者只需访问一个网页，约 2 分钟内计算器从**非沙箱的 crashpad-handler 进程**中弹出；stage-2 由 payload 用系统 curl 从页面同源服务器自动拉取——目标机零预置、全链零硬编码路径
 
-![一键包运行结果：calc 与 notepad 从非沙箱 handler 弹出](evidence/POC_ONECLICK_WIN.png)
+![一键包运行结果：calc 与 notepad 从非沙箱 handler 弹出](assert/POC_ONECLICK_WIN.png)
 
 ---
 
@@ -435,7 +435,7 @@ stage-2 落地通道的选择是实测驱动的，不是靠"常识"（[WEAPONIZE
 
 全链取胜现场：渲染器按计划崩溃，calc 与 notepad 从**非沙箱的 crashpad-handler** 进程中弹出——OS 沙箱逃逸达成。
 
-![全链取胜：calc 与 notepad 从非沙箱 handler 弹出](evidence/POC_FULLCHAIN_WIN_REPRO_20261020.png)
+![全链取胜：calc 与 notepad 从非沙箱 handler 弹出](assert/POC_FULLCHAIN_WIN_REPRO_20261020.png)
 
 ---
 
