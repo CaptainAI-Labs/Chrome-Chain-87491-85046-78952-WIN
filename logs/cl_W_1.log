@@ -1,17 +1,17 @@
-[25976:9424:1020/234657.460:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
-[25976:9424:1020/234657.460:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
-[25500:19316:1020/234657.479:ERROR:ui\gl\direct_composition_support.cc:625] AMD VideoProcessorGetOutputExtension failed: 未指定的错误 (0x80004005)
-[25956:15748:1020/234657.533:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
-[25956:15748:1020/234657.533:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
-[23332:20296:1020/234657.544:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
-[23332:20296:1020/234657.544:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
-[25532:18348:1020/234657.624:INFO:CONSOLE:40] "GCDBG addrof 117d0d9 117d1a9 sane=true", source: http://127.0.0.1:8765/stage1w.js (40)
-[25532:18348:1020/234657.624:INFO:CONSOLE:43] "ST1 begin", source: http://127.0.0.1:8765/stage1w.js (43)
-[25532:18348:1020/234657.624:INFO:CONSOLE:64] "ST1 reclaim hit=14", source: http://127.0.0.1:8765/stage1w.js (64)
-[25532:18348:1020/234657.624:INFO:CONSOLE:66] "ST1 fakeobj ok", source: http://127.0.0.1:8765/stage1w.js (66)
-[25532:18348:1020/234657.624:INFO:CONSOLE:75] "ST1 cage_rw ready", source: http://127.0.0.1:8765/stage1w.js (75)
-[25532:18348:1020/234657.624:INFO:CONSOLE:79] "ST1 proof 13.37=13.37", source: http://127.0.0.1:8765/stage1w.js (79)
-[25532:18348:1020/234657.642:INFO:CONSOLE:147] "MAIN start", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
-[25532:18348:1020/234657.647:INFO:CONSOLE:56] "BOOT inst a/d ok", source: http://127.0.0.1:8765/pocwin_full_w4.js (56)
-[25532:18348:1020/234657.647:INFO:CONSOLE:61] "BOOT pads compiled", source: http://127.0.0.1:8765/pocwin_full_w4.js (61)
-[25532:18348:1020/234657.647:INFO:CONSOLE:147] "MAIN boot done", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
+[21532:19576:1111/231120.490:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
+[21532:19576:1111/231120.490:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
+[10868:1104:1111/231120.545:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
+[10868:1104:1111/231120.545:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
+[10556:4144:1111/231120.564:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
+[10556:4144:1111/231120.564:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
+[5264:17420:1111/231120.607:INFO:CONSOLE:40] "GCDBG addrof 117d17d 117d24d sane=true", source: http://127.0.0.1:8765/stage1w.js (40)
+[5264:17420:1111/231120.608:INFO:CONSOLE:43] "ST1 begin", source: http://127.0.0.1:8765/stage1w.js (43)
+[5264:17420:1111/231120.611:INFO:CONSOLE:64] "ST1 reclaim hit=14", source: http://127.0.0.1:8765/stage1w.js (64)
+[5264:17420:1111/231120.612:INFO:CONSOLE:66] "ST1 fakeobj ok", source: http://127.0.0.1:8765/stage1w.js (66)
+[5264:17420:1111/231120.612:INFO:CONSOLE:75] "ST1 cage_rw ready", source: http://127.0.0.1:8765/stage1w.js (75)
+[5264:17420:1111/231120.612:INFO:CONSOLE:79] "ST1 proof 13.37=13.37", source: http://127.0.0.1:8765/stage1w.js (79)
+[5264:17420:1111/231120.635:INFO:CONSOLE:147] "MAIN start", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
+[5264:17420:1111/231120.640:INFO:CONSOLE:56] "BOOT inst a/d ok", source: http://127.0.0.1:8765/pocwin_full_w4.js (56)
+[5264:17420:1111/231120.640:INFO:CONSOLE:61] "BOOT pads compiled", source: http://127.0.0.1:8765/pocwin_full_w4.js (61)
+[5264:17420:1111/231120.640:INFO:CONSOLE:147] "MAIN boot done", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
+[9744:18240:1111/231121.201:ERROR:ui\gl\direct_composition_support.cc:625] AMD VideoProcessorGetOutputExtension failed: 未指定的错误 (0x80004005)

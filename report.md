@@ -130,16 +130,6 @@ cage 读写还不够——代码区在 cage 内但是 RX。利用 wasm 的**私�
 （渲染器随 payload 主动崩溃，日志终止）
 ```
 
-渲染层 ACE 的独立验证（不经 crashpad 直接开 calc，早期版本）：
-
-![渲染层 ACE：calc/notepad 为渲染器直系子进程](evidence/POC_CALC_ACE.png)
-
-重启自包含验证（重启机器后一条命令复胜）：
-
-![重启后一键复胜](evidence/POC_REBOOT_WIN.png)
-
----
-
 ## 4. 阶段深潜
 
 ### 4.1 stage1：概率结构的源头
@@ -216,7 +206,7 @@ stage1 的失败模式高度可辨识（`young GC not observed` / `85046 bootstr
 
 `cs_` 指向 plant 区 = 模板劫持成功；随后 Flush 派发 `LoadLibraryW(ev64.dll)`，evil.dll DllMain **同时**开 calc 和 notepad（双开花用于与手工窗口区分；驱动脚本每轮开跑前清场，杜绝残留误报）。
 
-![全链胜现场](evidence/POC_FULLCHAIN_WIN.png)
+![全链胜现场（2026-10-20 复现归档）](evidence/POC_FULLCHAIN_WIN_REPRO_20261020.png)
 
 ---
 

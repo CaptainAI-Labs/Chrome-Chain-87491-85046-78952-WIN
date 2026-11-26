@@ -1,17 +1,35 @@
-[25772:25256:1020/234828.361:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
-[25772:25256:1020/234828.361:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
-[3140:17836:1020/234828.415:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
-[3140:17836:1020/234828.415:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
-[20004:12508:1020/234828.424:ERROR:ui\gl\direct_composition_support.cc:625] AMD VideoProcessorGetOutputExtension failed: 未指定的错误 (0x80004005)
-[25400:26348:1020/234828.437:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
-[25400:26348:1020/234828.437:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
-[16684:26132:1020/234828.508:INFO:CONSOLE:40] "GCDBG addrof 117cd9d 117ce6d sane=true", source: http://127.0.0.1:8765/stage1w.js (40)
-[16684:26132:1020/234828.508:INFO:CONSOLE:43] "ST1 begin", source: http://127.0.0.1:8765/stage1w.js (43)
-[16684:26132:1020/234828.508:INFO:CONSOLE:64] "ST1 reclaim hit=14", source: http://127.0.0.1:8765/stage1w.js (64)
-[16684:26132:1020/234828.508:INFO:CONSOLE:66] "ST1 fakeobj ok", source: http://127.0.0.1:8765/stage1w.js (66)
-[16684:26132:1020/234828.508:INFO:CONSOLE:75] "ST1 cage_rw ready", source: http://127.0.0.1:8765/stage1w.js (75)
-[16684:26132:1020/234828.508:INFO:CONSOLE:79] "ST1 proof 13.37=13.37", source: http://127.0.0.1:8765/stage1w.js (79)
-[16684:26132:1020/234828.525:INFO:CONSOLE:147] "MAIN start", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
-[16684:26132:1020/234828.530:INFO:CONSOLE:56] "BOOT inst a/d ok", source: http://127.0.0.1:8765/pocwin_full_w4.js (56)
-[16684:26132:1020/234828.530:INFO:CONSOLE:61] "BOOT pads compiled", source: http://127.0.0.1:8765/pocwin_full_w4.js (61)
-[16684:26132:1020/234828.530:INFO:CONSOLE:147] "MAIN boot done", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
+[5760:1056:1111/231247.257:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
+[5760:1056:1111/231247.257:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
+[21996:20912:1111/231247.263:ERROR:ui\gl\direct_composition_support.cc:625] AMD VideoProcessorGetOutputExtension failed: 未指定的错误 (0x80004005)
+[10536:7716:1111/231247.317:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
+[10536:7716:1111/231247.317:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
+[16360:9948:1111/231247.339:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
+[16360:9948:1111/231247.339:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
+[5576:17500:1111/231247.409:INFO:CONSOLE:40] "GCDBG addrof 117d15d 117d22d sane=true", source: http://127.0.0.1:8765/stage1w.js (40)
+[5576:17500:1111/231247.409:INFO:CONSOLE:43] "ST1 begin", source: http://127.0.0.1:8765/stage1w.js (43)
+[5576:17500:1111/231247.410:INFO:CONSOLE:64] "ST1 reclaim hit=14", source: http://127.0.0.1:8765/stage1w.js (64)
+[5576:17500:1111/231247.410:INFO:CONSOLE:66] "ST1 fakeobj ok", source: http://127.0.0.1:8765/stage1w.js (66)
+[5576:17500:1111/231247.410:INFO:CONSOLE:75] "ST1 cage_rw ready", source: http://127.0.0.1:8765/stage1w.js (75)
+[5576:17500:1111/231247.410:INFO:CONSOLE:79] "ST1 proof 13.37=13.37", source: http://127.0.0.1:8765/stage1w.js (79)
+[5576:17500:1111/231247.431:INFO:CONSOLE:147] "MAIN start", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
+[5576:17500:1111/231247.437:INFO:CONSOLE:56] "BOOT inst a/d ok", source: http://127.0.0.1:8765/pocwin_full_w4.js (56)
+[5576:17500:1111/231247.438:INFO:CONSOLE:61] "BOOT pads compiled", source: http://127.0.0.1:8765/pocwin_full_w4.js (61)
+[5576:17500:1111/231247.438:INFO:CONSOLE:147] "MAIN boot done", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
+[5576:17500:1111/231247.448:INFO:CONSOLE:147] "MAIN getter done", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
+[5576:17500:1111/231247.448:INFO:CONSOLE:100] "ALIAS-TRY mi=6", source: http://127.0.0.1:8765/pocwin_full_w4.js (100)
+[5576:17500:1111/231247.448:INFO:CONSOLE:102] "ALIAS jumps=16", source: http://127.0.0.1:8765/pocwin_full_w4.js (102)
+[5576:17500:1111/231247.450:INFO:CONSOLE:147] "ALIAS OK body=0x1980", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
+[5576:17500:1111/231247.450:INFO:CONSOLE:121] "PRE-DEPLOY base=0x18e2 len=2617", source: http://127.0.0.1:8765/pocwin_full_w4.js (121)
+[5576:17500:1111/231247.451:INFO:CONSOLE:127] "WROTE blob", source: http://127.0.0.1:8765/pocwin_full_w4.js (127)
+[5576:17500:1111/231247.451:INFO:CONSOLE:133] "VERIFY bad4=0", source: http://127.0.0.1:8765/pocwin_full_w4.js (133)
+[5576:17500:1111/231247.451:INFO:CONSOLE:143] "ORIGIN-OK=true DEPLOYED at 0x18e2, firing callOld...", source: http://127.0.0.1:8765/pocwin_full_w4.js (143)
+[11396:4068:1111/231347.471:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
+[11396:4068:1111/231347.471:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
+[5576:17500:1111/231547.333:ERROR:components\device_event_log\device_event_log_impl.cc:211] [23:15:47.333] USB: usb_service_win.cc:108 SetupDiGetDeviceProperty({{A45C254E-DF1C-4EFD-8020-67D146A850E0}, 6}) failed: 找不到元素。 (0x490)
+[21996:20912:1111/231547.486:ERROR:ui\gl\egl_util.cc:92] EGL Driver message (Error) eglCreateContext: Requested version is not supported
+[5576:15932:1111/231635.657:ERROR:google_apis\gcm\engine\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[5576:15932:1111/231659.061:ERROR:google_apis\gcm\engine\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[5576:15932:1111/231743.682:ERROR:google_apis\gcm\engine\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[5576:15932:1111/231923.750:ERROR:google_apis\gcm\engine\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[16688:6084:1111/232048.272:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
+[16688:6084:1111/232048.272:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.

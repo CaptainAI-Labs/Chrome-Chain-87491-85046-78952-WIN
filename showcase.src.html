@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>从一个网页到沙箱外的计算器 · Chrome 三 CVE 全链研究</title>
+<meta name="description" content="CVE-2026-87491 × CVE-2026-85046 × CVE-2026-78952 — 渲染层 ACE 到 OS 沙箱逃逸全链研究展示">
+<style>
+:root{
+  --bg:#07090c; --bg2:#0a0e13; --panel:#0d131a; --panel2:#101823;
+  --line:rgba(148,163,184,.14); --line2:rgba(148,163,184,.26);
+  --ink:#e6edf3; --mut:#8b98a9; --dim:#5c6773;
+  --cy:#5eead4; --bl:#7ab3ff; --am:#f5c26b; --rd:#ff8fa3; --gn:#6ee7a0; --vi:#b7a6ff;
+  --mono:ui-monospace,"Cascadia Code",Consolas,"JetBrains Mono",monospace;
+  --sans:"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.7;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden}
+::selection{background:rgba(94,234,212,.25)}
+::-webkit-scrollbar{width:10px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:#1c2530;border-radius:5px;border:2px solid var(--bg)}
+a{color:var(--bl);text-decoration:none}
+
+/* ── 进度条 & 导航 ─────────────────────────── */
+#bar{position:fixed;top:0;left:0;height:2px;width:0;background:linear-gradient(90deg,var(--cy),var(--bl));z-index:99;transition:width .1s linear}
+nav{position:fixed;top:0;right:0;left:0;z-index:90;display:flex;justify-content:space-between;align-items:center;
+  padding:14px 32px;backdrop-filter:blur(12px);background:rgba(7,9,12,.72);border-bottom:1px solid var(--line)}
+nav .brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--mut)}
+nav .brand b{color:var(--cy);font-weight:600}
+nav .links{display:flex;gap:22px;font-size:12.5px}
+nav .links a{color:var(--mut);font-family:var(--mono);letter-spacing:.05em;transition:color .2s}
+nav .links a:hover{color:var(--cy)}
+@media(max-width:900px){nav .links{display:none}}
+
+/* ── 版式 ─────────────────────────────────── */
+.wrap{max-width:1180px;margin:0 auto;padding:0 32px}
+section{padding:110px 0 30px;position:relative}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.28em;color:var(--cy);margin-bottom:18px;display:flex;align-items:center;gap:14px}
+.eyebrow::after{content:"";flex:0 0 60px;height:1px;background:var(--line2)}
+h2{font-size:clamp(26px,3.4vw,38px);font-weight:650;letter-spacing:.01em;margin-bottom:14px}
+.lead{color:var(--mut);max-width:760px;font-size:15.5px;margin-bottom:44px}
+.mono{font-family:var(--mono)}
+.card{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:14px}
+
+/* ── Hero ─────────────────────────────────── */
+#hero{min-height:100vh;display:flex;align-items:center;padding:132px 0 110px;position:relative}
+#hero::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(620px 340px at 72% 30%,rgba(94,234,212,.07),transparent 65%),
+             radial-gradient(500px 300px at 20% 75%,rgba(122,179,255,.05),transparent 65%)}
+.hero-tag{font-family:var(--mono);font-size:12px;letter-spacing:.32em;color:var(--mut);margin-bottom:28px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.hero-tag .dot{width:6px;height:6px;border-radius:50%;background:var(--gn);box-shadow:0 0 10px var(--gn);animation:blink 2.4s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+h1{font-size:clamp(38px,6vw,74px);font-weight:700;line-height:1.16;letter-spacing:.005em;margin-bottom:26px}
+h1 .accent{color:var(--cy)}
+h1 .thin{color:var(--dim);font-weight:300}
+.cve-chips{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 34px}
+.chip{font-family:var(--mono);font-size:12.5px;padding:6px 14px;border-radius:999px;border:1px solid var(--line2);color:var(--mut)}
+.chip.c1{border-color:rgba(122,179,255,.4);color:var(--bl)}
+.chip.c2{border-color:rgba(183,166,255,.4);color:var(--vi)}
+.chip.c3{border-color:rgba(245,194,107,.4);color:var(--am)}
+.hero-sub{color:var(--mut);font-size:16px;max-width:720px;margin-bottom:52px}
+.hero-sub b{color:var(--ink);font-weight:600}
+
+/* hero 数据条 */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.stat{background:var(--bg2);padding:26px 24px}
+.stat .num{font-family:var(--mono);font-size:34px;font-weight:600;color:var(--ink);line-height:1.2}
+.stat .num em{font-style:normal;font-size:15px;color:var(--dim);margin-left:2px}
+.stat .lbl{font-size:12.5px;color:var(--dim);margin-top:6px;letter-spacing:.05em}
+.stat:nth-child(1) .num{color:var(--gn)} .stat:nth-child(2) .num{color:var(--cy)}
+.stat:nth-child(3) .num{color:var(--bl)} .stat:nth-child(4) .num{color:var(--am)}
+
+/* hero 链路微线 */
+.rail{margin-top:46px;position:relative;height:64px}
+.rail .line{position:absolute;top:32px;left:0;right:0;height:1px;background:var(--line2)}
+.rail .pkg{position:absolute;top:28.5px;width:8px;height:8px;border-radius:50%;background:var(--cy);box-shadow:0 0 14px var(--cy);animation:run 9s linear infinite}
+@keyframes run{0%{left:0;opacity:0}6%{opacity:1}48%{opacity:1}50%{left:72%;background:var(--bl)}94%{opacity:1}100%{left:100%;opacity:0}}
+.rail .m{position:absolute;top:44px;font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.08em;transform:translateX(-50%);white-space:nowrap}
+.rail .m1{left:7%}.rail .m2{left:38%}.rail .m3{left:72%}.rail .m4{left:97%}
+.rail .flag{position:absolute;font-family:var(--mono);font-size:10px;color:var(--gn);top:6px;transform:translateX(-50%);white-space:nowrap}
+.rail .f2{left:26%}.rail .f4{left:85%}
+
+/* ── 三块拼图 ─────────────────────────────── */
+.puzzle{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+.pz{padding:28px 26px 24px;position:relative;overflow:hidden}
+.pz .idx{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.2em}
+.pz h3{font-family:var(--mono);font-size:19px;margin:10px 0 2px;font-weight:650}
+.pz .role{font-size:12.5px;margin-bottom:16px;font-family:var(--mono)}
+.pz p{font-size:13.8px;color:var(--mut)}
+.pz .out{margin-top:18px;padding-top:14px;border-top:1px dashed var(--line);font-family:var(--mono);font-size:12.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pz .out .arrow{color:var(--dim)}
+.pz .bar{position:absolute;top:0;left:0;right:0;height:2px}
+.pz .kv{margin-top:14px;display:grid;gap:6px}
+.pz .kv div{font-size:12.5px;color:var(--dim);display:flex;gap:10px}
+.pz .kv b{color:var(--mut);font-weight:500;font-family:var(--mono);flex:0 0 64px}
+.pz .g1 .bar{background:var(--bl)} .pz .g1 h3,.pz .g1 .role{color:var(--bl)}
+.pz .g2 .bar{background:var(--vi)} .pz .g2 h3,.pz .g2 .role{color:var(--vi)}
+.pz .g3 .bar{background:var(--am)} .pz .g3 h3,.pz .g3 .role{color:var(--am)}
+.pz .out .prim{color:var(--ink);background:rgba(94,234,212,.08);border:1px solid rgba(94,234,212,.3);padding:2px 10px;border-radius:6px}
+
+/* ── 全链路泳道 ───────────────────────────── */
+.fig-shell{padding:26px 22px 14px;overflow:hidden}
+.fig-shell svg{width:100%;height:auto;display:block}
+.legend{display:flex;gap:24px;flex-wrap:wrap;padding:10px 26px 20px;font-family:var(--mono);font-size:11px;color:var(--dim)}
+.legend i{display:inline-block;width:18px;height:2px;margin-right:7px;vertical-align:middle}
+.markers{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:18px 26px 24px;border-top:1px dashed var(--line)}
+.markers .t{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.15em;margin-right:6px}
+.mk{font-family:var(--mono);font-size:11.5px;padding:5px 11px;border-radius:6px;border:1px solid var(--line2);color:var(--mut);transition:all .35s;white-space:nowrap}
+.mk.on{color:var(--cy);border-color:var(--cy);box-shadow:0 0 12px rgba(94,234,212,.25)}
+.mk.final.on{color:var(--gn);border-color:var(--gn);box-shadow:0 0 14px rgba(110,231,160,.3)}
+.sep{color:var(--dim);font-family:var(--mono);font-size:11px}
+
+/* ── 研究过程 ─────────────────────────────── */
+.phase{display:grid;grid-template-columns:220px 1fr;gap:36px;padding:44px 0;border-top:1px solid var(--line)}
+.phase:first-of-type{border-top:none}
+.phase .no{font-family:var(--mono);color:var(--dim);font-size:13px}
+.phase .no b{display:block;font-size:30px;color:var(--ink);font-weight:650;margin-bottom:8px}
+.phase .no .en{font-size:10.5px;letter-spacing:.25em;color:var(--cy)}
+.phase h3{font-size:21px;margin-bottom:12px}
+.phase p{color:var(--mut);font-size:14.5px;max-width:820px}
+.phase .facts{margin-top:18px;display:grid;gap:10px}
+.fact{display:flex;gap:12px;font-size:13.5px;color:var(--mut);align-items:baseline}
+.fact::before{content:"▸";color:var(--cy);font-size:11px;flex:0 0 auto}
+.fact code{font-family:var(--mono);font-size:12px;color:var(--bl);background:rgba(122,179,255,.07);padding:1px 7px;border-radius:5px}
+@media(max-width:820px){.phase{grid-template-columns:1fr;gap:8px}}
+
+/* 选型矩阵表 */
+table.mx{width:100%;border-collapse:collapse;font-size:13px;margin-top:20px}
+.mx th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--dim);text-align:left;padding:10px 14px;border-bottom:1px solid var(--line2);font-weight:500}
+.mx td{padding:11px 14px;border-bottom:1px solid var(--line);color:var(--mut);vertical-align:top}
+.mx tr:hover td{background:rgba(148,163,184,.03)}
+.mx .cve{font-family:var(--mono);color:var(--ink);white-space:nowrap}
+.mx .ok{color:var(--gn)} .mx .bad{color:var(--rd)} .mx .mid{color:var(--am)}
+.tag{font-family:var(--mono);font-size:10.5px;padding:2px 9px;border-radius:5px;border:1px solid var(--line2);white-space:nowrap}
+.tag.ok{color:var(--gn);border-color:rgba(110,231,160,.35)} .tag.bad{color:var(--rd);border-color:rgba(255,143,163,.35)}
+.tag.mid{color:var(--am);border-color:rgba(245,194,107,.35)} .tag.blue{color:var(--bl);border-color:rgba(122,179,255,.35)}
+
+/* ── 工作流 ───────────────────────────────── */
+.wf-grid{display:grid;grid-template-columns:1fr;gap:18px}
+.console{background:#05070a;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.console .hd{display:flex;align-items:center;gap:8px;padding:11px 16px;border-bottom:1px solid var(--line);background:rgba(148,163,184,.03)}
+.console .hd i{width:9px;height:9px;border-radius:50%;background:#1e2833}
+.console .hd i:nth-child(1){background:#31404f}.console .hd i:nth-child(2){background:#31404f}.console .hd i:nth-child(3){background:#31404f}
+.console .hd span{font-family:var(--mono);font-size:11px;color:var(--dim);margin-left:8px;letter-spacing:.1em}
+.console .bd{padding:16px 20px;height:250px;overflow:hidden;font-family:var(--mono);font-size:12.5px;line-height:2.05}
+.console .ln{opacity:0;transform:translateY(4px);transition:all .5s;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.console .ln.in{opacity:1;transform:none}
+.console .ln .ag{color:var(--vi)} .console .ln .ok{color:var(--gn)} .console .ln .wa{color:var(--am)}
+.console .ln .ts{color:var(--dim);margin-right:10px}
+.wf-notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:18px}
+.wf-note{padding:18px 20px}
+.wf-note h4{font-size:14px;margin-bottom:8px;display:flex;gap:9px;align-items:center}
+.wf-note h4 .g{width:7px;height:7px;border-radius:2px;flex:0 0 auto}
+.wf-note p{font-size:12.8px;color:var(--mut)}
+
+/* ── 武器化演进 ───────────────────────────── */
+.evo{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;position:relative}
+.evo .node{padding:24px 22px;position:relative}
+.evo .v{font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.2em}
+.evo h3{font-size:18px;margin:8px 0 10px}
+.evo p{font-size:13px;color:var(--mut);min-height:66px}
+.evo .res{margin-top:14px;font-family:var(--mono);font-size:12px;display:flex;justify-content:space-between;align-items:center}
+.evo .res .rate{font-size:20px;font-weight:650}
+.evo .dead{border-color:rgba(255,143,163,.25)} .ev2 .rate{color:var(--rd)}
+.evo .warn{border-color:rgba(245,194,107,.25)} .ev3 .rate{color:var(--am)}
+.evo .win{border-color:rgba(110,231,160,.4);box-shadow:0 0 34px rgba(110,231,160,.07)} .ev4 .rate{color:var(--gn)}
+.evo .win::after{content:"★";position:absolute;top:18px;right:20px;color:var(--gn)}
+.av-matrix{margin-top:22px;padding:24px 26px}
+.av-matrix h4{font-family:var(--mono);font-size:12px;letter-spacing:.18em;color:var(--dim);margin-bottom:16px}
+.av-row{display:grid;grid-template-columns:170px 1fr 110px;gap:14px;align-items:center;padding:11px 0;border-top:1px dashed var(--line);font-size:13px}
+.av-row .n{font-family:var(--mono);color:var(--ink)}
+.av-row .d{color:var(--dim);font-size:12.5px}
+
+/* ── 终局竞态 / 证据 ──────────────────────── */
+.duo{display:grid;grid-template-columns:1.5fr 1fr;gap:18px}
+@media(max-width:980px){.duo{grid-template-columns:1fr}}
+.term{background:#05070a;border:1px solid var(--line);border-radius:12px;padding:0;overflow:hidden}
+.term .hd{padding:11px 16px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.1em;display:flex;justify-content:space-between}
+.term .bd{padding:16px 18px;font-family:var(--mono);font-size:12px;line-height:1.95;color:var(--mut);overflow-x:auto}
+.term .bd .hl{color:var(--gn)} .term .bd .hl2{color:var(--cy)} .term .bd .dim{color:var(--dim)}
+.ev-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-top:18px}
+.ev{padding:18px 20px}
+.ev h4{font-size:13.5px;margin-bottom:6px;color:var(--ink)}
+.ev p{font-size:12.5px;color:var(--dim)}
+.ev .fn{font-family:var(--mono);font-size:11px;color:var(--cy);margin-top:8px;word-break:break-all}
+
+/* ── 交互：卡片悬停 / 放大按钮 ─────────────── */
+.pz{cursor:pointer;transition:border-color .25s,transform .25s}
+.pz:hover{border-color:rgba(94,234,212,.45);transform:translateY(-3px)}
+.pz .more{margin-top:16px;padding-top:12px;border-top:1px dashed var(--line);font-family:var(--mono);font-size:11.5px;color:var(--cy);opacity:.7;transition:opacity .25s;display:flex;justify-content:space-between;align-items:center}
+.pz:hover .more{opacity:1}
+.ev{cursor:pointer;transition:border-color .25s,transform .25s;display:block}
+.ev:hover{border-color:rgba(94,234,212,.45);transform:translateY(-3px)}
+.ev .fn{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ev .fn::after{content:"↗";color:var(--dim);transition:color .25s}
+.ev:hover .fn::after{color:var(--cy)}
+a.ev{text-decoration:none}
+.fig-shell{position:relative}
+.zoom-btn{position:absolute;top:14px;right:14px;z-index:5;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--mut);background:rgba(7,9,12,.8);border:1px solid var(--line2);border-radius:8px;padding:6px 12px;cursor:pointer;transition:all .25s;backdrop-filter:blur(4px)}
+.zoom-btn:hover{color:var(--cy);border-color:var(--cy)}
+
+/* ── 交互：模态层 ─────────────────────────── */
+.modal{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:26px}
+.modal.open{display:flex}
+.modal .bg{position:absolute;inset:0;background:rgba(3,5,8,.84);backdrop-filter:blur(7px);animation:fdin .25s}
+@keyframes fdin{from{opacity:0}to{opacity:1}}
+.panel{position:relative;background:#0a1017;border:1px solid var(--line2);border-radius:16px;max-width:940px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;animation:pop .32s cubic-bezier(.2,.7,.3,1);box-shadow:0 30px 90px rgba(0,0,0,.55)}
+@keyframes pop{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
+.panel .ph{display:flex;align-items:center;gap:14px;padding:18px 26px;border-bottom:1px solid var(--line);flex:0 0 auto}
+.panel .ph .tid{font-family:var(--mono);font-size:14px;color:var(--cy)}
+.panel .ph .tt{font-size:15px;color:var(--ink)}
+.panel .ph .x{margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--mut);background:none;border:1px solid var(--line2);border-radius:8px;width:32px;height:32px;cursor:pointer;transition:all .2s;flex:0 0 auto}
+.panel .ph .x:hover{color:var(--rd);border-color:var(--rd)}
+.panel .pb{overflow-y:auto;padding:28px 32px;flex:1}
+.panel .pb::-webkit-scrollbar{width:9px}
+.panel .pb::-webkit-scrollbar-thumb{background:#28323f;border-radius:5px}
+.panel .pb::-webkit-scrollbar-thumb:hover{background:#3a4757}
+/* 详情模板 */
+.dtpl{display:none}
+.dsec{font-family:var(--mono);font-size:11px;letter-spacing:.24em;color:var(--cy);margin:28px 0 13px;display:flex;align-items:center;gap:12px}
+.dsec::after{content:"";flex:1;height:1px;background:var(--line)}
+.dtpl .dsec:first-child{margin-top:0}
+.dtpl p{font-size:13.8px;color:var(--mut);line-height:1.9}
+.dtpl p b{color:var(--ink);font-weight:600}
+.kv2 div{display:flex;gap:14px;font-size:13.3px;color:var(--mut);padding:8px 0;border-bottom:1px dashed var(--line)}
+.kv2 b{flex:0 0 110px;color:var(--ink);font-weight:500;font-family:var(--mono);font-size:12px;padding-top:1px}
+.code{background:#05070a;border:1px solid var(--line);border-radius:10px;padding:15px 19px;font-family:var(--mono);font-size:12px;line-height:1.95;color:#9fb0c3;overflow-x:auto;white-space:pre;margin:4px 0}
+.code .g{color:var(--gn)}.code .c{color:var(--dim)}.code .y{color:var(--am)}.code .b{color:var(--bl)}
+.code.doc{font-size:11.5px;line-height:1.8}
+/* 文档查看器 · markdown 渲染 */
+.mdv{font-size:13.5px;color:var(--mut);line-height:1.85;word-break:break-word}
+.mdv h1{font-size:22px;color:var(--ink);margin:26px 0 12px;padding-bottom:10px;border-bottom:1px solid var(--line);font-weight:650}
+.mdv h1:first-child{margin-top:0}
+.mdv h2{font-size:18px;color:var(--ink);margin:26px 0 10px;padding-left:12px;border-left:3px solid var(--cy);font-weight:650}
+.mdv h3{font-size:15px;color:var(--cy);margin:20px 0 8px;font-weight:600}
+.mdv h4{font-size:13.5px;color:var(--bl);margin:16px 0 6px;font-weight:600}
+.mdv p{margin:8px 0}
+.mdv a{color:var(--bl);border-bottom:1px dashed rgba(122,179,255,.4)}
+.mdv strong{color:var(--ink);font-weight:600}
+.mdv em{color:var(--dim)}
+.mdv code{font-family:var(--mono);font-size:12px;background:rgba(94,234,212,.07);border:1px solid rgba(94,234,212,.16);border-radius:4px;padding:1px 6px;color:var(--cy)}
+.mdv pre{background:#05070a;border:1px solid var(--line);border-radius:10px;padding:14px 18px;overflow-x:auto;margin:12px 0}
+.mdv pre code{background:none;border:none;padding:0;color:#9fb0c3;font-size:12px;line-height:1.8}
+.mdv table{border-collapse:collapse;margin:14px 0;font-size:12.8px;width:100%;display:block;overflow-x:auto}
+.mdv th{font-family:var(--mono);font-size:11px;color:var(--dim);text-align:left;padding:8px 12px;border:1px solid var(--line2);background:rgba(148,163,184,.05);white-space:nowrap}
+.mdv td{padding:8px 12px;border:1px solid var(--line);color:var(--mut);vertical-align:top}
+.mdv tr:hover td{background:rgba(148,163,184,.03)}
+.mdv ul,.mdv ol{padding-left:22px;margin:8px 0}
+.mdv li{margin:4px 0}
+.mdv blockquote{border-left:3px solid var(--am);padding:8px 16px;margin:12px 0;color:var(--dim);background:rgba(245,194,107,.05);border-radius:0 8px 8px 0}
+.mdv hr{border:none;border-top:1px dashed var(--line);margin:20px 0}
+.mdv img{max-width:100%;border-radius:8px}
+/* 灯箱画廊 */
+.lb-media{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:22px;min-height:0}
+.lb-media img{max-width:100%;max-height:66vh;border-radius:8px;box-shadow:0 12px 50px rgba(0,0,0,.5)}
+.lb-cap{padding:13px 22px;border-top:1px dashed var(--line);font-family:var(--mono);font-size:12px;color:var(--dim);display:flex;justify-content:space-between;gap:16px;flex:0 0 auto}
+.lb-cap .cnt{color:var(--cy)}
+.lb-nav{display:flex;gap:10px}
+.lb-nav button,.zbar button{font-family:var(--mono);font-size:13px;color:var(--mut);background:none;border:1px solid var(--line2);border-radius:8px;min-width:34px;height:32px;padding:0 10px;cursor:pointer;transition:all .2s}
+.lb-nav button:hover,.zbar button:hover{color:var(--cy);border-color:var(--cy)}
+/* 缩放查看器 */
+.modal.zoom .panel{max-width:96vw;max-height:94vh;height:94vh}
+.zstage{flex:1;overflow:hidden;cursor:grab;position:relative;background:radial-gradient(rgba(148,163,184,.05) 1px,transparent 1px);background-size:26px 26px;touch-action:none}
+.zstage.drag{cursor:grabbing}
+.zinner{position:absolute;transform-origin:0 0}
+.zinner svg{width:100%;height:auto;display:block}
+.zbar{display:flex;gap:10px;padding:12px 18px;border-top:1px solid var(--line);align-items:center;flex:0 0 auto}
+.zbar .zl{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;margin-right:auto}
+@media(max-width:760px){.modal{padding:10px}.panel .pb{padding:20px}.lb-media img{max-height:52vh}}
+
+/* ── footer ──────────────────────────────── */
+footer{border-top:1px solid var(--line);margin-top:100px;padding:56px 0 64px;color:var(--dim);font-size:12.5px}
+footer .cols{display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap}
+footer .mono{font-size:11px;line-height:2}
+footer b{color:var(--mut);font-weight:500}
+
+/* ── 入场动效 ─────────────────────────────── */
+.rv{opacity:0;transform:translateY(26px);transition:opacity .8s cubic-bezier(.2,.6,.2,1),transform .8s cubic-bezier(.2,.6,.2,1)}
+.rv.on{opacity:1;transform:none}
+.d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}.d4{transition-delay:.32s}
+@media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}*{animation:none!important}}
+html.static .rv{opacity:1;transform:none;transition:none}
+@media print{.rv{opacity:1;transform:none}nav,#bar{display:none}section{padding:40px 0 10px}}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<nav>
+  <div class="brand"><b>CHAIN</b> // 87491 · 85046 · 78952</div>
+  <div class="links">
+    <a href="#puzzle">三块拼图</a><a href="#chain">全链路</a><a href="#process">研究过程</a>
+    <a href="#workflow">AI 工作流</a><a href="#evo">武器化</a><a href="#race">终局竞态</a><a href="#proof">战果</a>
+  </div>
+</nav>
+
+<!-- ═══════════ 00 HERO ═══════════ -->
+<header id="hero">
+  <div class="wrap">
+    <div class="hero-tag"><span class="dot"></span>CHROME N-DAY FULL-CHAIN RESEARCH<span style="color:var(--dim)">/</span>授权隔离研究环境</div>
+    <h1>从一个网页，<br>到<span class="accent">沙箱外的计算器</span>。<span class="thin"></span></h1>
+    <div class="cve-chips">
+      <span class="chip c1">CVE-2026-87491 · V8</span>
+      <span class="chip c1" style="border-style:dashed">⊕</span>
+      <span class="chip c2">CVE-2026-85046 · V8</span>
+      <span class="chip c2" style="border-style:dashed">⊕</span>
+      <span class="chip c3">CVE-2026-78952 · crashpad</span>
+    </div>
+    <p class="hero-sub">
+      三个 CVE 缝合成一条完整利用链：两个 V8 原语漏洞拿下<b>渲染层任意代码执行</b>，
+      一个 crashpad 信任边界漏洞完成 <b>OS 沙箱逃逸</b>——最终代码运行在<b>非沙箱的
+      crashpad-handler 进程</b>里。全程 AI Agents 工作流自主驱动：探测、梳理、定位、武器化，
+      每一步都有可复核的证据链。</p>
+    <div class="stats rv">
+      <div class="stat"><div class="num"><span data-count="43">0</span><em>%</em></div><div class="lbl">整链胜率 / 轮（30 轮实测）</div></div>
+      <div class="stat"><div class="num"><span data-count="83">0</span><em>%</em></div><div class="lbl">到达部署（25 / 30 轮）</div></div>
+      <div class="stat"><div class="num">~<span data-count="2.3" data-dec="1">0</span><em>轮</em></div><div class="lbl">期望取胜轮数</div></div>
+      <div class="stat"><div class="num"><span data-count="0">0</span><em>项</em></div><div class="lbl">硬编码路径 · 目标机零预置</div></div>
+    </div>
+    <div class="rail rv d2">
+      <div class="line"></div><div class="pkg"></div>
+      <span class="m m1">网页访问</span><span class="flag f2">渲染层 ACE ✓</span><span class="m m2">V8 原语</span>
+      <span class="m m3">桥接落地</span><span class="flag f4">沙箱逃逸 ✓</span><span class="m m4">calc+notepad</span>
+    </div>
+    <p class="mono" style="margin-top:26px;font-size:11.5px;color:var(--dim);letter-spacing:.06em">
+      靶标 Chrome for Testing 152.0.7977.54 x64 · Windows 10 19045 / Win11 26300 · Defender 实时防护 + 行为监控全开</p>
+  </div>
+</header>
+
+<!-- ═══════════ 01 三块拼图 ═══════════ -->
+<section id="puzzle">
+  <div class="wrap">
+    <div class="eyebrow">01 / THE THREE PIECES</div>
+    <h2 class="rv">三块拼图</h2>
+    <p class="lead rv d1">每个漏洞只贡献一段原语，单独都不足以越界——拼接后才构成「网页 → OS 沙箱外代码执行」的完整通路。</p>
+    <div class="puzzle">
+      <div class="card pz g1 rv" role="button" tabindex="0" data-detail="d87491" data-tid="CVE-2026-87491" data-tt="sort 比较器混淆 + 私有异常符号伪造">
+        <div class="bar"></div>
+        <div class="idx">PIECE ① · V8 · ITW · KEV</div>
+        <h3>CVE-2026-87491</h3>
+        <div class="role" style="color:var(--bl)">sort 比较器混淆 + 私有异常符号伪造</div>
+        <p>比较器在排序中途 <span class="mono">fill(0)</span> 清空数组，V8 内联 sort 缓存的元素指针与写回类型失配，HeapObject 指针被按 Smi 解出；再以伪造的私有异常符号 getter 换掉共享跳表，mixed dispatch 用过期 trusted metadata 执行——memory index 6 越界槽位恰好解析为跳表指针。</p>
+        <div class="kv">
+          <div><b>角色</b><span>addrof 原语 + RX 别名的钥匙</span></div>
+          <div><b>引入/修复</b><span class="mono" style="font-size:11.5px">v8@66a3f1e9 → 153.0.8010.36</span></div>
+        </div>
+        <div class="out">产出 <span class="arrow">→</span><span class="prim">addrof</span><span class="arrow">→</span><span class="prim">wasm 代码区读写别名</span></div>
+        <div class="more"><span>查看技术细节</span><span>→</span></div>
+      </div>
+      <div class="card pz g2 rv d1" role="button" tabindex="0" data-detail="d85046" data-tid="CVE-2026-85046" data-tt="写屏障跳过 → 假对象回收">
+        <div class="bar"></div>
+        <div class="idx">PIECE ② · V8 · ITW · KEV 2026-09</div>
+        <h3>CVE-2026-85046</h3>
+        <div class="role" style="color:var(--vi)">写屏障跳过 → 假对象回收</div>
+        <p>利用窗口在年轻代 GC 的一瞬：承载写屏障的对象被提升到老生代后屏障被跳过，GC 移动对象后旧指针仍滞留新空间。在旧指针位置喷射假 JSArray 头（map=PACKED_DOUBLE），让 V8 把回收内存当 double 数组复用——得到与 victim 共享 elements 的 cage 内任意读写。</p>
+        <div class="kv">
+          <div><b>角色</b><span>整链地基：cage 任意读写的供应商</span></div>
+          <div><b>引入/修复</b><span class="mono" style="font-size:11.5px">v8@66a3f1e9 → 152.0.7977.82</span></div>
+        </div>
+        <div class="out">产出 <span class="arrow">→</span><span class="prim">read32 / write32</span><span class="arrow">→</span><span class="prim">cage 任意读写</span></div>
+        <div class="more"><span>查看技术细节</span><span>→</span></div>
+      </div>
+      <div class="card pz g3 rv d2" role="button" tabindex="0" data-detail="d78952" data-tid="CVE-2026-78952" data-tt="crashpad ReadUpTo 无钳位重试溢出">
+        <div class="bar"></div>
+        <div class="idx">PIECE ③ · CRASHPAD · 信任边界</div>
+        <h3>CVE-2026-78952</h3>
+        <div class="role" style="color:var(--am)">ReadUpTo 无钳位重试溢出</div>
+        <p>崩溃报告由<b style="color:var(--ink)">非沙箱</b>的 chrome.exe --type=crashpad-handler 收集；客户端 PE 节 "CPADinfo" 声明的 extra_memory_ranges 被 handler 无条件信任。读取期间以 6 个内核线程对目标页做 NOACCESS↔READWRITE 微脉冲翻转，ReadUpTo 撞页后重试<b style="color:var(--ink)">不把长度钳位回调用方 size</b>——0xB8 的请求读出 0x168 字节。</p>
+        <div class="kv">
+          <div><b>角色</b><span>唯一的跨进程边界错误 = OS 逃逸点</span></div>
+          <div><b>本质</b><span>重试长度未钳位 + 越界信任声明</span></div>
+        </div>
+        <div class="out">产出 <span class="arrow">→</span><span class="prim">SMMW 模板劫持</span><span class="arrow">→</span><span class="prim">handler 内 LoadLibraryW</span></div>
+        <div class="more"><span>查看技术细节</span><span>→</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 02 全链路 ═══════════ -->
+<section id="chain">
+  <div class="wrap">
+    <div class="eyebrow">02 / FULL CHAIN</div>
+    <h2 class="rv">全链路：渲染层 ACE → 沙箱逃逸</h2>
+    <p class="lead rv d1">四条泳道，两次边界穿越。第一次离开渲染器（进程创建），第二次进入非沙箱进程（crashpad 信任）——后者才是真正的 OS 沙箱逃逸。</p>
+    <div class="card fig-shell rv">
+      <button class="zoom-btn" data-zoom="svg-chain" data-zl="FULL-CHAIN SWIMLANE · 全链路泳道">⤢ 放大</button>
+      <svg id="svg-chain" viewBox="0 0 1520 530" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Consolas,monospace">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#5c6773"/></marker>
+          <marker id="arc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#5eead4"/></marker>
+          <linearGradient id="laneG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".028"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></linearGradient>
+        </defs>
+        <!-- 泳道 -->
+        <g font-size="11">
+          <rect x="20" y="26"  width="1480" height="72" rx="10" fill="url(#laneG)"/><text x="38" y="47" fill="#5c6773" letter-spacing="2">SAME-ORIGIN SERVER · 同源服务器</text>
+          <rect x="20" y="116" width="1480" height="120" rx="10" fill="url(#laneG)"/><text x="38" y="137" fill="#5c6773" letter-spacing="2">RENDERER · 渲染进程 — V8 沙箱 + OS 低权限 token</text>
+          <rect x="20" y="256" width="1480" height="104" rx="10" fill="url(#laneG)"/><text x="38" y="277" fill="#5c6773" letter-spacing="2">SYSTEM · 系统层 — %TEMP% · 进程创建 · Defender 监控</text>
+          <rect x="20" y="378" width="1480" height="104" rx="10" fill="url(#laneG)"/><text x="38" y="399" fill="#5c6773" letter-spacing="2">CRASHPAD-HANDLER · 非沙箱进程 — 逃逸终点</text>
+          <line x1="20" y1="112" x2="1500" y2="112" stroke="#94a3b8" stroke-opacity=".1" stroke-dasharray="3 5"/>
+          <line x1="20" y1="252" x2="1500" y2="252" stroke="#94a3b8" stroke-opacity=".1" stroke-dasharray="3 5"/>
+          <line x1="20" y1="374" x2="1500" y2="374" stroke="#94a3b8" stroke-opacity=".1" stroke-dasharray="3 5"/>
+        </g>
+        <!-- 节点 -->
+        <g font-size="12.5" text-anchor="middle">
+          <!-- N1 web -->
+          <g><rect x="55" y="42" width="180" height="48" rx="9" fill="#0d131a" stroke="#94a3b8" stroke-opacity=".3"/>
+            <text x="145" y="62" fill="#e6edf3">恶意网页</text><text x="145" y="80" fill="#5c6773" font-size="10.5">run_w4.html · 同源伺服</text></g>
+          <!-- N2 renderer 87491 -->
+          <g><rect x="265" y="150" width="180" height="56" rx="9" fill="#0d131a" stroke="#7ab3ff" stroke-opacity=".45"/>
+            <text x="355" y="172" fill="#7ab3ff">① 87491 sort 混淆</text><text x="355" y="190" fill="#8b98a9" font-size="10.5">比较器重入 → addrof</text></g>
+          <!-- N3 85046 -->
+          <g><rect x="475" y="150" width="180" height="56" rx="9" fill="#0d131a" stroke="#b7a6ff" stroke-opacity=".45"/>
+            <text x="565" y="172" fill="#b7a6ff">② 85046 写屏障跳过</text><text x="565" y="190" fill="#8b98a9" font-size="10.5">假对象回收 → cage R/W</text></g>
+          <!-- N4 wasm alias -->
+          <g><rect x="685" y="150" width="180" height="56" rx="9" fill="#0d131a" stroke="#b7a6ff" stroke-opacity=".45"/>
+            <text x="775" y="172" fill="#b7a6ff">③ wasm 跳表别名</text><text x="775" y="190" fill="#8b98a9" font-size="10.5">RX 代码区 → 可写</text></g>
+          <!-- N5 deploy ACE -->
+          <g><rect x="895" y="150" width="190" height="56" rx="9" fill="#0d131a" stroke="#5eead4" stroke-opacity=".55"/>
+            <text x="990" y="172" fill="#5eead4">④ 部署 2.6KB payload</text><text x="990" y="190" fill="#8b98a9" font-size="10.5">VERIFY bad4=0 → 渲染层 ACE</text></g>
+          <!-- N6 curl -->
+          <g><rect x="1105" y="272" width="185" height="56" rx="9" fill="#0d131a" stroke="#5eead4" stroke-opacity=".35"/>
+            <text x="1197" y="294" fill="#e6edf3">⑤ curl 同源落地</text><text x="1197" y="312" fill="#8b98a9" font-size="10.5">ms64.exe + ev64.dll → %TEMP%</text></g>
+          <!-- N7 racer -->
+          <g><rect x="1105" y="150" width="185" height="56" rx="9" fill="#0d131a" stroke="#94a3b8" stroke-opacity=".35"/>
+            <text x="1197" y="172" fill="#e6edf3">⑥ 竞态器布防</text><text x="1197" y="190" fill="#8b98a9" font-size="10.5">dbgwrap 附加 · 自旋 1s → 主动崩溃</text></g>
+          <!-- N8 race -->
+          <g><rect x="895" y="396" width="190" height="56" rx="9" fill="#0d131a" stroke="#f5c26b" stroke-opacity=".5"/>
+            <text x="990" y="418" fill="#f5c26b">⑦ 78952 溢出竞态</text><text x="990" y="436" fill="#8b98a9" font-size="10.5">0x168/0xB8 → SMMW 劫持</text></g>
+          <!-- N9 win -->
+          <g><rect x="1160" y="396" width="230" height="56" rx="9" fill="#0d131a" stroke="#6ee7a0" stroke-opacity=".6"/>
+            <text x="1275" y="418" fill="#6ee7a0">⑧ Flush → LoadLibraryW</text><text x="1275" y="436" fill="#8b98a9" font-size="10.5">ev64.dll → calc + notepad 双开花</text></g>
+        </g>
+        <!-- 徽章 -->
+        <g font-size="10.5" text-anchor="middle">
+          <rect x="930" y="122" width="120" height="20" rx="10" fill="none" stroke="#5eead4" stroke-opacity=".5"/><text x="990" y="136" fill="#5eead4">渲染层 ACE ✓</text>
+          <rect x="1205" y="368" width="140" height="20" rx="10" fill="rgba(110,231,160,.1)" stroke="#6ee7a0" stroke-opacity=".6"/><text x="1275" y="382" fill="#6ee7a0">OS 沙箱逃逸 ✓</text>
+        </g>
+        <!-- 连线 -->
+        <g fill="none" stroke="#5c6773" stroke-width="1.3">
+          <path d="M235,66 C 250,66 250,178 263,178" marker-end="url(#ar)"/>
+          <path d="M445,178 L471,178" marker-end="url(#ar)"/>
+          <path d="M655,178 L681,178" marker-end="url(#ar)"/>
+          <path d="M865,178 L891,178" marker-end="url(#ar)"/>
+          <path d="M990,208 C 990,240 1150,240 1180,268" stroke="#5eead4" stroke-opacity=".6" stroke-dasharray="5 4" marker-end="url(#arc)"/>
+          <path d="M1197,270 L1197,210" marker-end="url(#ar)"/>
+          <path d="M1103,300 C 1060,300 1010,330 992,392" stroke="#5eead4" stroke-opacity=".6" stroke-dasharray="5 4" marker-end="url(#arc)"/>
+          <path d="M1087,424 L1156,424" stroke="#f5c26b" stroke-opacity=".55" marker-end="url(#ar)"/>
+        </g>
+        <g font-size="10" fill="#5c6773">
+          <text x="1012" y="238" fill="#5eead4" fill-opacity=".8">进程创建 · curl.exe</text>
+          <text x="1035" y="358" fill="#5eead4" fill-opacity=".8">崩溃即起跑 · 沙箱边界 ★</text>
+        </g>
+        <!-- 流动光点 -->
+        <circle r="4" fill="#5eead4" opacity=".95">
+          <animateMotion dur="13s" repeatCount="indefinite" path="M145,66 C250,66 250,178 355,178 L565,178 L775,178 L990,178 C990,240 1150,240 1197,290 L1197,178 L1197,290 C1197,330 1010,340 990,424 L1275,424"/>
+        </circle>
+        <circle r="9" fill="#5eead4" opacity=".22">
+          <animateMotion dur="13s" repeatCount="indefinite" path="M145,66 C250,66 250,178 355,178 L565,178 L775,178 L990,178 C990,240 1150,240 1197,290 L1197,178 L1197,290 C1197,330 1010,340 990,424 L1275,424"/>
+        </circle>
+      </svg>
+      <div class="legend">
+        <span><i style="background:#5c6773"></i>链内推进</span>
+        <span><i style="background:#5eead4;height:2px;background:repeating-linear-gradient(90deg,#5eead4 0 5px,transparent 5px 9px)"></i>边界穿越</span>
+        <span><i style="background:#f5c26b"></i>竞态终局</span>
+        <span style="margin-left:auto">M152 · 152.0.7977.54 · 43%/轮</span>
+      </div>
+    </div>
+    <div class="card rv d1">
+      <div class="markers" id="markers">
+        <span class="t">CONSOLE TRAIL</span>
+        <span class="mk">GCDBG sane=true</span><span class="sep">→</span>
+        <span class="mk">ST1 cage_rw ready</span><span class="sep">→</span>
+        <span class="mk">ALIAS OK body=0x1980</span><span class="sep">→</span>
+        <span class="mk">WROTE blob</span><span class="sep">→</span>
+        <span class="mk">VERIFY bad4=0</span><span class="sep">→</span>
+        <span class="mk">ORIGIN-OK · DEPLOYED</span><span class="sep">→</span>
+        <span class="mk">WAW cs_=plant+0x10</span><span class="sep">→</span>
+        <span class="mk final">calc + notepad ✓</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 03 研究过程 ═══════════ -->
+<section id="process">
+  <div class="wrap">
+    <div class="eyebrow">03 / RESEARCH PROCESS</div>
+    <h2 class="rv">研究过程：四个阶段</h2>
+    <p class="lead rv d1">从一堆候选 CVE 到一条 43% 胜率的全链，中间是可复盘的方法论：先收敛攻击面，再排依赖关系，再下钻根因，最后做工程化提稳。</p>
+
+    <div class="phase rv">
+      <div class="no"><b>探测</b>ATTACK-SURFACE<br>RECON</div>
+      <div>
+        <h3>漏洞探测 · 候选矩阵与版本窗口</h3>
+        <p>面对同窗口期的一批 n-day，第一步不是写 exploit，而是排雷：逐个核对「触发面是否可达、与链内其它漏洞是否零交集、官方修复版本是否锁定」。六条候选实测下来，只有 85046+87491 组合同时满足<b style="color:var(--ink)">全部三个条件</b>。</p>
+        <table class="mx">
+          <tr><th>候选</th><th>一句话甄别结论</th><th>裁决</th></tr>
+          <tr><td class="cve">CVE-2026-85046 ⊕ 87491</td><td>sort 归约 M149+，与 5281 零交集；一个供 cage R/W、一个供 native 执行，结构互补</td><td><span class="tag ok">入选 · 本链</span></td></tr>
+          <tr><td class="cve">CVE-2026-5281</td><td>Dawn AsyncTask UAF → GPU 进程执行（UNTRUSTED→LOW），与 85046/87491 零交集，另立 GPU 链</td><td><span class="tag blue">独立成链</span></td></tr>
+          <tr><td class="cve">CVE-2026-11645</td><td>TryFastAddDataProperty 元表越界写，窗口 A'（M144–149.0.7827.x），与本链窗口错开</td><td><span class="tag blue">独立成链</span></td></tr>
+          <tr><td class="cve">CVE-2026-5279</td><td>同批带病，但 Windows 发布版触发面被 parser 遮蔽（6 构建实测）</td><td><span class="tag bad">弃用</span></td></tr>
+          <tr><td class="cve">CVE-2025-6554</td><td>TurboFan 混淆（ITW 2025-06）在 Linux/Android 侧完整复现，Windows 侧退化 libpcap DoS 不可用</td><td><span class="tag bad">本链弃用</span></td></tr>
+          <tr><td class="cve">CVE-2026-78952</td><td>crashpad 溢出，唯一「跨进程信任边界」类错误——天然的全链收尾件</td><td><span class="tag ok">入选 · 收尾</span></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="phase rv">
+      <div class="no"><b>梳理</b>CHAIN<br>TOPOLOGY</div>
+      <div>
+        <h3>链路梳理 · 原语阶梯与依赖图</h3>
+        <p>把每个漏洞「能供什么、缺什么」画成依赖图：<b style="color:var(--ink)">87491 需要 cage 读写才有意义，85046 恰好是它的供应商</b>——这就是 bagel 双 bug 结构（上游两报 $1,000 + $2,500，均 ITW/KEV）。Linux 侧先用 152.0.7977.75 验证了双 bug 链（<code>PWNED 2026</code> · <code>restored:true</code> · 首试即中，10/10 渲染器 ACE），再把同一结构移植 Windows 收官。</p>
+        <div class="facts">
+          <div class="fact">原语阶梯：<code>addrof</code> ⊕ <code>cage R/W</code> ⊕ <code>RX 别名</code> → <code>渲染层 ACE</code> → <code>curl 桥接</code> → <code>竞态</code> → <code>OS 逃逸</code>，每一级有独立验收标记</div>
+          <div class="fact">跨链排重：85046/87491 与 5281（GPU 链）零交集——两条链并行不互扰，sort 触发归约条件锁定 M149+</div>
+          <div class="fact">补全收尾件：渲染层 ACE 之后需要「非渲染器进程」的错误，78952 的 handler 信任模型恰好补位</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase rv">
+      <div class="no"><b>定位</b>ROOT-CAUSE<br>ISOLATION</div>
+      <div>
+        <h3>漏洞定位 · 三个根因，三种下钻法</h3>
+        <p>三个漏洞用三种不同的定位手段，全部收敛到「引入 CL → 修复 CL」级别的确定性结论。</p>
+        <div class="facts">
+          <div class="fact"><b style="color:var(--vi);min-width:64px">85046</b><span>patch-diff 下钻：内联 sort 对多态反馈求 elements-kind <b style="color:var(--ink)">并集</b>（PACKED），并集对「读」是安全放宽、对「写回」是危险窄化——回调窄化回 SMI 后 CheckMaps 照过。引入 <code>v8@66a3f1e9</code>（2026-04-27），修复 <code>e0562d87</code>（152.0.7977.82）</span></div>
+          <div class="fact"><b style="color:var(--bl);min-width:64px">87491</b><span>IR 对比下钻：伪造私有异常符号 getter 在 optimized 无副作用窗口换共享跳表 → mixed dispatch 用 D 的函数配 A 的过期 trusted instance → memory index 6 越界解析为跳表指针</span></div>
+          <div class="fact"><b style="color:var(--am);min-width:64px">78952</b><span>尸检法下钻：<b style="color:var(--ink)">信标尸检</b>——payload 每个早退点写 <code>0xDEAD00xx</code> 故意崩溃，自写 mdmp.c 解析 minidump 异常流，「崩溃地址 = 进度报告」，把猜测变成读数</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase rv">
+      <div class="no"><b>利用</b>EXPLOIT<br>ENGINEERING</div>
+      <div>
+        <h3>利用链路研究 · 从「能打通」到 43%</h3>
+        <p>打通≠稳定。真正的工程量在概率结构：stage1 需要恰好等到一次 young GC（必须 fresh renderer，脏堆重载只有 ~3%），78952 竞态有固有窗口。方法是把漏损逐段归因、逐段消灭。</p>
+        <div class="facts">
+          <div class="fact">部署三重门禁：marker 回读 → body ∈ [0x1300, 0xE000]（避开活代码）→ 整 blob 字节校验 <code>VERIFY bad4=0</code>，「写坏一半照跑」的幽灵失败被杜绝</div>
+          <div class="fact">payload 设计三原则：零常量（PEB→IAT 自取 kernel32，重启免疫）、零遍历（页对齐向下扫 MZ 定位，避开损坏堆）、零新 DLL（只用已加载导出，逐个 expchk 验证非转发器）</div>
+          <div class="fact">关键修复「主动崩溃」：payload 返回≠渲染器死——原生自旋 1s 后写 <code>0xDEAD0021</code> 主动崩溃送出竞态起跑信号，这一项直接把胜率拉回并反超（见 §05）</div>
+          <div class="fact">30 轮归因终测：<code>WIN=13 DEPLOY=25 stage1=2 getter=0 alias=0</code>——桥接环节已 100% 化，剩余漏损全部在两处固有随机</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 04 AI WORKFLOW ═══════════ -->
+<section id="workflow">
+  <div class="wrap">
+    <div class="eyebrow">04 / AGENTS WORKFLOW</div>
+    <h2 class="rv">AI 自主工作流：全程驱动研究的多智能体管线</h2>
+    <p class="lead rv d1">研究由一条六阶段自治流水线推进：Orchestrator 分解目标 DAG → 四路侦察并行扇出 → 情报汇总收敛选型（6 候选 → 1 组合）→ 根因下钻 → 链路规划 → 三路并行构建（stage1 / 别名部署 / 武器化）→ 稳定性归因 → Verifier 三重门禁；未过门禁自动回环（重新规划 / 修复迭代）——人类只审证据。</p>
+
+    <div class="wf-grid">
+      <div class="card fig-shell rv">
+        <button class="zoom-btn" data-zoom="svg-wf" data-zl="AGENTS WORKFLOW · 自主工作流 DAG">⤢ 放大</button>
+        <svg id="svg-wf" viewBox="0 0 1200 970" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Consolas,monospace">
+          <defs>
+            <marker id="wa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#4a5568"/></marker>
+            <marker id="wg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#6ee7a0"/></marker>
+          </defs>
+          <!-- 阶段轴 -->
+          <g font-size="9" fill="#3d4754" letter-spacing="3" text-anchor="middle">
+            <text x="30" y="236" transform="rotate(-90 30 236)">Ⅰ RECON·PROBE</text>
+            <text x="30" y="357" transform="rotate(-90 30 357)">Ⅱ INTEL</text>
+            <text x="30" y="460" transform="rotate(-90 30 460)">Ⅲ ROOT</text>
+            <text x="30" y="576" transform="rotate(-90 30 576)">Ⅳ PLAN</text>
+            <text x="30" y="700" transform="rotate(-90 30 700)">Ⅴ BUILD</text>
+            <text x="30" y="830" transform="rotate(-90 30 830)">Ⅵ TUNE·GATE</text>
+          </g>
+          <!-- 边 -->
+          <g fill="none" stroke="#4a5568" stroke-width="1.2">
+            <path d="M600,64 L600,90" marker-end="url(#wa)"/>
+            <path d="M555,156 C500,182 340,182 234,200" marker-end="url(#wa)"/>
+            <path d="M588,156 C570,182 490,182 480,200" marker-end="url(#wa)"/>
+            <path d="M612,156 C630,182 710,182 720,200" marker-end="url(#wa)"/>
+            <path d="M645,156 C700,182 860,182 966,200" marker-end="url(#wa)"/>
+            <path d="M228,268 C228,308 268,320 294,334" marker-end="url(#wa)" opacity=".75"/>
+            <path d="M476,268 C476,300 478,312 480,334" marker-end="url(#wa)" opacity=".75"/>
+            <path d="M724,268 C724,300 722,312 720,334" marker-end="url(#wa)" opacity=".75"/>
+            <path d="M972,268 C972,308 932,320 906,334" marker-end="url(#wa)" opacity=".75"/>
+            <path d="M600,378 L600,424" marker-end="url(#wa)"/>
+            <path d="M600,492 L600,540" marker-end="url(#wa)"/>
+            <path d="M520,608 C478,636 330,636 236,660" marker-end="url(#wa)"/>
+            <path d="M600,608 L600,660" marker-end="url(#wa)"/>
+            <path d="M680,608 C722,636 880,636 972,660" marker-end="url(#wa)"/>
+            <path d="M370,700 L444,700" marker-end="url(#wa)"/>
+            <path d="M750,700 L824,700" marker-end="url(#wa)"/>
+            <path d="M220,736 C220,768 340,770 402,784" marker-end="url(#wa)" opacity=".75"/>
+            <path d="M600,736 L600,784" marker-end="url(#wa)"/>
+            <path d="M980,736 L980,784" marker-end="url(#wa)"/>
+            <path d="M690,820 L784,820" marker-end="url(#wa)"/>
+            <path d="M920,852 C920,892 800,902 640,902 L340,902 C262,902 172,892 172,858" marker-end="url(#wg)" stroke="#6ee7a0" stroke-opacity=".5"/>
+            <path d="M930,788 L930,758 C1122,718 1172,430 1110,190 C1072,98 900,104 788,124" stroke="#6ee7a0" stroke-opacity=".45" stroke-dasharray="5 4" marker-end="url(#wg)"/>
+            <path d="M870,788 C866,758 940,754 974,740" stroke="#6ee7a0" stroke-opacity=".45" stroke-dasharray="4 3" marker-end="url(#wg)"/>
+          </g>
+          <!-- 边标签 -->
+          <g font-size="10" fill="#5c6773">
+            <text x="770" y="186">扇出 · fan-out ×4</text>
+            <text x="640" y="330" fill="#5eead4" fill-opacity=".8">选型收敛：6 候选 → 1 组合</text>
+            <text x="616" y="530" fill="#b7a6ff" fill-opacity=".7">根因清单 → 组合规划</text>
+            <text x="392" y="692" fill="#f5c26b" fill-opacity=".7">cage RW</text>
+            <text x="772" y="692" fill="#f5c26b" fill-opacity=".7">部署产物</text>
+            <text x="706" y="812" fill="#7ab3ff" fill-opacity=".7">归因数据</text>
+            <text x="545" y="895" fill="#6ee7a0" fill-opacity=".7">通过 · 归档</text>
+            <text x="1148" y="470" fill="#6ee7a0" fill-opacity=".7" transform="rotate(90 1148 470)">门禁未过 · 重新规划</text>
+            <text x="905" y="762" fill="#6ee7a0" fill-opacity=".7">修复迭代</text>
+          </g>
+          <!-- 节点 -->
+          <g text-anchor="middle">
+            <rect x="320" y="28" width="560" height="36" rx="8" fill="#0d131a" stroke="#94a3b8" stroke-opacity=".3"/>
+            <text x="600" y="51" font-size="12.5" fill="#e6edf3">研究目标 · 网页 → 渲染层 ACE → OS 沙箱逃逸（n-day 全链复现）</text>
+            <rect x="420" y="96" width="360" height="60" rx="10" fill="#101823" stroke="#5eead4" stroke-opacity=".55"/>
+            <text x="600" y="120" font-size="14" fill="#5eead4" letter-spacing="2">ORCHESTRATOR</text>
+            <text x="600" y="140" font-size="10.5" fill="#8b98a9">任务分解 · DAG 编排 · 门禁评审 · 回环调度</text>
+            <g>
+              <rect x="122" y="204" width="212" height="64" rx="10" fill="#0d131a" stroke="#7ab3ff" stroke-opacity=".45"/>
+              <text x="228" y="228" font-size="12.5" fill="#7ab3ff">RECON-1 · 矩阵</text>
+              <text x="228" y="246" font-size="10" fill="#8b98a9">CVE 候选排雷 · ITW/KEV</text>
+              <rect x="370" y="204" width="212" height="64" rx="10" fill="#0d131a" stroke="#7ab3ff" stroke-opacity=".45"/>
+              <text x="476" y="228" font-size="12.5" fill="#7ab3ff">RECON-2 · 窗口</text>
+              <text x="476" y="246" font-size="10" fill="#8b98a9">版本窗口 · A/A'/B/B+/C</text>
+              <rect x="618" y="204" width="212" height="64" rx="10" fill="#0d131a" stroke="#7ab3ff" stroke-opacity=".45"/>
+              <text x="724" y="228" font-size="12.5" fill="#7ab3ff">RECON-3 · CL 挖矿</text>
+              <text x="724" y="246" font-size="10" fill="#8b98a9">上游引入/修复 CL 锁定</text>
+              <rect x="866" y="204" width="212" height="64" rx="10" fill="#0d131a" stroke="#7ab3ff" stroke-opacity=".45"/>
+              <text x="972" y="228" font-size="12.5" fill="#7ab3ff">ENV-PROBE · 环境</text>
+              <text x="972" y="246" font-size="10" fill="#8b98a9">Defender 拦截面实测</text>
+            </g>
+            <rect x="170" y="336" width="860" height="42" rx="9" fill="rgba(94,234,212,.05)" stroke="#5eead4" stroke-opacity=".45"/>
+            <text x="600" y="355" font-size="12.5" fill="#5eead4">INTEL MERGE · 情报汇总</text>
+            <text x="600" y="371" font-size="10.5" fill="#8b98a9">选型矩阵收敛：6 候选 → 85046⊕87491 ⊕ 78952（零交集验证 ✓）</text>
+            <rect x="430" y="428" width="340" height="64" rx="10" fill="#0d131a" stroke="#b7a6ff" stroke-opacity=".45"/>
+            <text x="600" y="450" font-size="13" fill="#b7a6ff">ROOT-CAUSE</text>
+            <text x="600" y="468" font-size="10.5" fill="#8b98a9">patch-diff 对读 · IR/gdb 定位</text>
+            <text x="600" y="483" font-size="10.5" fill="#8b98a9">信标尸检法 · 0xDEAD00xx = 进度</text>
+            <rect x="400" y="544" width="400" height="64" rx="10" fill="#0d131a" stroke="#5eead4" stroke-opacity=".4"/>
+            <text x="600" y="566" font-size="13" fill="#5eead4">CHAIN-PLANNER</text>
+            <text x="600" y="584" font-size="10.5" fill="#8b98a9">原语阶梯 · 依赖图 · 零交集排重</text>
+            <text x="600" y="599" font-size="10.5" fill="#8b98a9">里程碑门禁（console 标记体系）</text>
+            <g>
+              <rect x="70" y="664" width="300" height="72" rx="10" fill="#0d131a" stroke="#f5c26b" stroke-opacity=".45"/>
+              <text x="220" y="688" font-size="12.5" fill="#f5c26b">BUILDER · STAGE1</text>
+              <text x="220" y="706" font-size="10" fill="#8b98a9">85046 写屏障跳过 → cage R/W</text>
+              <text x="220" y="721" font-size="10" fill="#8b98a9">验收 proof 13.37=13.37</text>
+              <rect x="450" y="664" width="300" height="72" rx="10" fill="#0d131a" stroke="#f5c26b" stroke-opacity=".45"/>
+              <text x="600" y="688" font-size="12.5" fill="#f5c26b">BUILDER · 别名部署</text>
+              <text x="600" y="706" font-size="10" fill="#8b98a9">87491 RX 别名 · blob 部署校验</text>
+              <text x="600" y="721" font-size="10" fill="#8b98a9">验收 VERIFY bad4=0</text>
+              <rect x="830" y="664" width="300" height="72" rx="10" fill="#0d131a" stroke="#f5c26b" stroke-opacity=".45"/>
+              <text x="980" y="688" font-size="12.5" fill="#f5c26b">WEAPONIZER</text>
+              <text x="980" y="706" font-size="10" fill="#8b98a9">payload v1→v4 迭代 · curl 落地</text>
+              <text x="980" y="721" font-size="10" fill="#8b98a9">AV 拦截矩阵选型（certutil ✗/curl ✓）</text>
+            </g>
+            <rect x="330" y="788" width="360" height="64" rx="10" fill="#0d131a" stroke="#7ab3ff" stroke-opacity=".4"/>
+            <text x="510" y="810" font-size="13" fill="#7ab3ff">STABILITY</text>
+            <text x="510" y="828" font-size="10.5" fill="#8b98a9">30 轮 A/B 分阶段归因 · fail-fast</text>
+            <text x="510" y="843" font-size="10.5" fill="#8b98a9">竞态窗口调优（iters/pages）</text>
+            <rect x="790" y="788" width="280" height="64" rx="10" fill="#0d131a" stroke="#6ee7a0" stroke-opacity=".55"/>
+            <text x="930" y="810" font-size="13" fill="#6ee7a0">VERIFIER · JUDGE</text>
+            <text x="930" y="828" font-size="10.5" fill="#8b98a9">bad4=0 · 字节一致 · WIN 签名</text>
+            <text x="930" y="843" font-size="10.5" fill="#8b98a9">三重门禁 · 不过不进下一阶段</text>
+            <rect x="70" y="788" width="200" height="64" rx="10" fill="#0d131a" stroke="#94a3b8" stroke-opacity=".35"/>
+            <text x="170" y="812" font-size="12.5" fill="#e6edf3">EVIDENCE VAULT</text>
+            <text x="170" y="830" font-size="10.5" fill="#8b98a9">evidence/ · report.md</text>
+            <text x="170" y="845" font-size="10.5" fill="#8b98a9">30 轮统计 · 复现手册</text>
+          </g>
+          <!-- 消息脉冲 -->
+          <g>
+            <circle r="3.2" fill="#5eead4"><animateMotion dur="5s" repeatCount="indefinite" path="M555,156 C500,182 340,182 234,200"/></circle>
+            <circle r="3.2" fill="#5eead4"><animateMotion dur="5s" begin="0.9s" repeatCount="indefinite" path="M588,156 C570,182 490,182 480,200"/></circle>
+            <circle r="3.2" fill="#5eead4"><animateMotion dur="5s" begin="1.7s" repeatCount="indefinite" path="M612,156 C630,182 710,182 720,200"/></circle>
+            <circle r="3.2" fill="#5eead4"><animateMotion dur="5s" begin="2.5s" repeatCount="indefinite" path="M645,156 C700,182 860,182 966,200"/></circle>
+            <circle r="3.2" fill="#7ab3ff"><animateMotion dur="4s" begin="1.2s" repeatCount="indefinite" path="M228,268 C228,308 268,320 294,334"/></circle>
+            <circle r="3.2" fill="#7ab3ff"><animateMotion dur="4s" begin="2.6s" repeatCount="indefinite" path="M972,268 C972,308 932,320 906,334"/></circle>
+            <circle r="3.2" fill="#5eead4"><animateMotion dur="4s" begin="1s" repeatCount="indefinite" path="M600,378 L600,424"/></circle>
+            <circle r="3.2" fill="#b7a6ff"><animateMotion dur="4s" begin="1.8s" repeatCount="indefinite" path="M600,492 L600,540"/></circle>
+            <circle r="3.2" fill="#f5c26b"><animateMotion dur="5s" begin="2.2s" repeatCount="indefinite" path="M520,608 C478,636 330,636 236,660"/></circle>
+            <circle r="3.2" fill="#f5c26b"><animateMotion dur="5s" begin="3s" repeatCount="indefinite" path="M680,608 C722,636 880,636 972,660"/></circle>
+            <circle r="3.2" fill="#f5c26b"><animateMotion dur="4s" begin="3.6s" repeatCount="indefinite" path="M370,700 L444,700"/></circle>
+            <circle r="3.2" fill="#7ab3ff"><animateMotion dur="5s" begin="2.8s" repeatCount="indefinite" path="M600,736 L600,784"/></circle>
+            <circle r="3.2" fill="#f5c26b"><animateMotion dur="5s" begin="3.4s" repeatCount="indefinite" path="M980,736 L980,784"/></circle>
+            <circle r="3.2" fill="#7ab3ff"><animateMotion dur="4s" begin="0.6s" repeatCount="indefinite" path="M690,820 L784,820"/></circle>
+            <circle r="3.2" fill="#6ee7a0"><animateMotion dur="9s" begin="4s" repeatCount="indefinite" path="M930,788 L930,758 C1122,718 1172,430 1110,190 C1072,98 900,104 788,124"/></circle>
+            <circle r="3.2" fill="#6ee7a0"><animateMotion dur="6s" begin="5s" repeatCount="indefinite" path="M920,852 C920,892 800,902 640,902 L340,902 C262,902 172,892 172,858"/></circle>
+          </g>
+        </svg>
+        <div class="legend">
+          <span><i style="background:#5eead4"></i>任务下发</span><span><i style="background:#f5c26b"></i>产物流转</span>
+          <span><i style="background:#6ee7a0"></i>门禁回环</span><span style="margin-left:auto">自治闭环 · 人只审证据</span>
+        </div>
+      </div>
+
+      <div class="console rv d1">
+        <div class="hd"><i></i><i></i><i></i><span>agents-runtime.log — 自主运行轨迹（循环回放）</span></div>
+        <div class="bd" id="wlog"></div>
+      </div>
+    </div>
+
+    <div class="wf-notes">
+      <div class="card wf-note rv"><h4><span class="g" style="background:#7ab3ff"></span>扇出侦察</h4><p>三个 Recon Agent 并行：候选矩阵 / 版本窗口 / CL 挖掘互不阻塞，六条候选一轮收敛到一组。</p></div>
+      <div class="card wf-note rv d1"><h4><span class="g" style="background:#b7a6ff"></span>证据优先</h4><p>每个结论必须挂证据：引入/修复 CL、gdb 读数、console 标记、minidump 信标——推测不进链。</p></div>
+      <div class="card wf-note rv d2"><h4><span class="g" style="background:#f5c26b"></span>自校验门禁</h4><p>构建 Agent 每阶段自证：proof 13.37=13.37、VERIFY bad4=0、字节级 cmp——过不了门禁不进下一阶段。</p></div>
+      <div class="card wf-note rv d3"><h4><span class="g" style="background:#6ee7a0"></span>失败即数据</h4><p>v2 被 Defender 拦、v3 布局崩坏，全部转为选型矩阵的一行——迭代回环把死路变成护栏。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 05 武器化演进 ═══════════ -->
+<section id="evo">
+  <div class="wrap">
+    <div class="eyebrow">05 / WEAPONIZATION</div>
+    <h2 class="rv">武器化演进：四代方案的生死簿</h2>
+    <p class="lead rv d1">「能利用」到「零预置、零硬编码」之间隔着四代方案——每一代的死因都变成下一代的护栏。</p>
+    <div class="evo">
+      <div class="card node ev1 rv"><div class="v">GEN v1</div><h3>本地 DLL</h3>
+        <p>渲染器内 LoadLibraryW("C:\pwn\launch64.dll")，DLL 里 WinInet 下载并启动。全链曾稳定取胜。</p>
+        <div class="res"><span class="rate" style="color:var(--mut)">29%</span><span class="tag mid">✅ 可跑 · 3 处硬编码</span></div></div>
+      <div class="card node dead ev2 rv d1"><div class="v">GEN v2</div><h3>certutil</h3>
+        <p>payload 拼 cmd 链式下载。Defender 行为监控在<b>进程创建层</b>拦截（gle=5）——拦的是命令行模式，不是映像。</p>
+        <div class="res"><span class="rate">✗</span><span class="tag bad">❌ 环境拦截</span></div></div>
+      <div class="card node warn ev3 rv d2"><div class="v">GEN v3</div><h3>页面内嵌 64KB</h3>
+        <p>文件字节逐 4 字节写进 RX 区再落盘。功能全通（%TEMP% 字节级一致！）但垫函数 10→130 个，V8 堆布局崩坏。</p>
+        <div class="res"><span class="rate">3%</span><span class="tag mid">⚠️ 42 轮仅 2 达部署</span></div></div>
+      <div class="card node win ev4 rv d3"><div class="v">GEN v4</div><h3>curl 同源落地</h3>
+        <p>系统自带 curl.exe 一次拉双文件，blob 仅 2.6KB，原版 10-pad 模块一字不动——零硬编码、目标机零预置。</p>
+        <div class="res"><span class="rate">43%</span><span class="tag ok">✅ 最终形态</span></div></div>
+    </div>
+    <div class="card av-matrix rv d1">
+      <h4>AV 拦截矩阵 · 同一台机器同一分钟实测</h4>
+      <div class="av-row"><span class="n">certutil.exe</span><span class="d">下载模式被 Defender 拒（gle=5）；bash 直接 spawn 也 EPERM；指定 cmd.exe 全路径无效</span><span class="tag bad">进程创建层拦截</span></div>
+      <div class="av-row"><span class="n">curl.exe（系统自带）</span><span class="d">三变体全放行；一次 CreateProcess 拉双文件，等 WaitForSingleObject 再启竞态器</span><span class="tag ok">放行</span></div>
+      <div class="av-row"><span class="n">LoadLibraryW 新 DLL</span><span class="d">85046 之后渲染器内加载任何未加载 DLL（wininet 等）都会在损坏堆上初始化即崩——只用已加载导出</span><span class="tag mid">自杀式 · 弃</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 06 终局竞态 ═══════════ -->
+<section id="race">
+  <div class="wrap">
+    <div class="eyebrow">06 / THE FINAL RACE</div>
+    <h2 class="rv">终局竞态：CVE-2026-78952 三拍</h2>
+    <p class="lead rv d1">OS 逃逸发生在崩溃收尸的路径上：handler 读崩溃进程内存的间隙里，把一个受控溢出变成一次函数指针劫持。</p>
+    <div class="duo">
+      <div class="card fig-shell rv">
+        <button class="zoom-btn" data-zoom="svg-race" data-zl="CVE-2026-78952 · 终局竞态三拍">⤢ 放大</button>
+        <svg id="svg-race" viewBox="0 0 760 330" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Consolas,monospace">
+          <defs><marker id="ra" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#5c6773"/></marker></defs>
+          <!-- beat 1 -->
+          <g>
+            <rect x="18" y="30" width="212" height="230" rx="12" fill="#0d131a" stroke="#94a3b8" stroke-opacity=".18"/>
+            <text x="124" y="58" font-size="11" fill="#f5c26b" text-anchor="middle" letter-spacing="2">BEAT 1 · 微脉冲</text>
+            <rect x="48" y="86" width="152" height="64" rx="7" fill="#101823" stroke="#f5c26b" stroke-opacity=".5"/>
+            <text x="124" y="112" font-size="11" fill="#e6edf3" text-anchor="middle">victim page</text>
+            <text x="124" y="132" font-size="10" fill="#f5c26b" text-anchor="middle" id="flipA">PAGE_READWRITE</text>
+            <text x="124" y="132" font-size="10" fill="#ff8fa3" text-anchor="middle" id="flipB" opacity="0">PAGE_NOACCESS</text>
+            <g stroke="#4a5568" stroke-width="1">
+              <line x1="58" y1="212" x2="92" y2="156" marker-end="url(#ra)"/><line x1="86" y1="218" x2="112" y2="156" marker-end="url(#ra)"/>
+              <line x1="118" y1="222" x2="130" y2="156" marker-end="url(#ra)"/><line x1="150" y1="218" x2="150" y2="156" marker-end="url(#ra)"/>
+              <line x1="180" y1="212" x2="168" y2="156" marker-end="url(#ra)"/><line x1="206" y1="206" x2="188" y2="156" marker-end="url(#ra)"/>
+            </g>
+            <text x="124" y="243" font-size="10" fill="#5c6773" text-anchor="middle">6 × 内核线程翻转页保护</text>
+          </g>
+          <path d="M236,145 L268,145" stroke="#5c6773" fill="none" marker-end="url(#ra)"/>
+          <!-- beat 2 -->
+          <g>
+            <rect x="274" y="30" width="212" height="230" rx="12" fill="#0d131a" stroke="#94a3b8" stroke-opacity=".18"/>
+            <text x="380" y="58" font-size="11" fill="#f5c26b" text-anchor="middle" letter-spacing="2">BEAT 2 · ReadUpTo</text>
+            <text x="298" y="92" font-size="10.5" fill="#8b98a9">请求 size = 0xB8</text>
+            <rect x="298" y="102" width="70" height="16" rx="3" fill="none" stroke="#8b98a9" stroke-opacity=".6"/>
+            <text x="298" y="146" font-size="10.5" fill="#8b98a9">实际读出 0x168</text>
+            <rect x="298" y="156" width="150" height="16" rx="3" fill="rgba(122,179,255,.14)" stroke="#7ab3ff" stroke-opacity=".5"/>
+            <rect x="298" y="156" width="70" height="16" rx="3" fill="rgba(110,231,160,.15)"/>
+            <rect x="368" y="156" width="80" height="16" rx="3" fill="rgba(255,143,163,.18)" stroke="#ff8fa3" stroke-opacity=".6" stroke-dasharray="4 3"/>
+            <text x="376" y="192" font-size="10" fill="#ff8fa3">溢出 0xB0 → 相邻堆槽</text>
+            <text x="380" y="228" font-size="10.5" fill="#8b98a9" text-anchor="middle">重试长度未钳位回 size</text>
+            <text x="380" y="244" font-size="10" fill="#5c6773" text-anchor="middle">盖到 minidump 流的 SMMW 对象</text>
+          </g>
+          <path d="M492,145 L524,145" stroke="#5c6773" fill="none" marker-end="url(#ra)"/>
+          <!-- beat 3 -->
+          <g>
+            <rect x="530" y="30" width="212" height="230" rx="12" fill="#0d131a" stroke="#94a3b8" stroke-opacity=".18"/>
+            <text x="636" y="58" font-size="11" fill="#6ee7a0" text-anchor="middle" letter-spacing="2">BEAT 3 · 派发</text>
+            <g font-size="10.5" text-anchor="middle">
+              <rect x="556" y="78" width="160" height="34" rx="7" fill="#101823" stroke="#94a3b8" stroke-opacity=".3"/><text x="636" y="99" fill="#e6edf3">SMMW 模板劫持</text>
+              <rect x="556" y="126" width="160" height="34" rx="7" fill="#101823" stroke="#94a3b8" stroke-opacity=".3"/><text x="636" y="147" fill="#e6edf3">Next() → memcpy 进 .data</text>
+              <rect x="556" y="174" width="160" height="34" rx="7" fill="#101823" stroke="#94a3b8" stroke-opacity=".3"/><text x="636" y="195" fill="#8b98a9">plant 区 [Q]=DLL名 [Q+8]=入口</text>
+              <rect x="556" y="222" width="160" height="34" rx="7" fill="rgba(110,231,160,.08)" stroke="#6ee7a0" stroke-opacity=".55"/><text x="636" y="243" fill="#6ee7a0">Flush → LoadLibraryW ✓</text>
+            </g>
+            <g stroke="#4a5568" stroke-width="1" fill="none">
+              <line x1="636" y1="112" x2="636" y2="122" marker-end="url(#ra)"/><line x1="636" y1="160" x2="636" y2="170" marker-end="url(#ra)"/><line x1="636" y1="208" x2="636" y2="218" marker-end="url(#ra)"/>
+            </g>
+          </g>
+          <text x="380" y="300" font-size="10.5" fill="#5c6773" text-anchor="middle">触发段精确 0xB8 · iters=8 固有竞态窗口 · 命中签名 WAW cs_=plant+0x10</text>
+        </svg>
+      </div>
+      <div class="term rv d1">
+        <div class="hd"><span>命中现场 · console_win_round23（节选）</span><span>WIN</span></div>
+        <div class="bd">
+<span class="dim">…</span>"ST1 cage_rw ready" <span class="dim">← cage 读写闭环</span><br>
+"ALIAS OK body=0x1980"<br>
+"WROTE blob" → <span class="hl2">"VERIFY bad4=0"</span><br>
+"ORIGIN-OK=true DEPLOYED"<br>
+<span class="dim">（渲染器主动崩溃 · 日志终止）</span><br>
+<span class="dim">[ms64]</span> 触发读 {page+0xe98, 0xb0}<br>
+<span class="dim">[dbgwrap]</span> <span class="hl">WAW#0 cs_=plant+0x10</span><br>
+<span class="dim">[handler]</span> Flush → <span class="hl">LoadLibraryW(ev64.dll)</span><br>
+<span class="hl">→ calc + notepad 双开花 ✓</span><br>
+<span class="dim">=== FULL-CHAIN WIN ===</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 07 战果与证据 ═══════════ -->
+<section id="proof">
+  <div class="wrap">
+    <div class="eyebrow">07 / OUTCOME & EVIDENCE</div>
+    <h2 class="rv">战果与证据</h2>
+    <p class="lead rv d1">每一米都有可复核的证据链：实拍截图（含 2026-11-11 本机复跑取胜）、五张 AI 绘制架构图、60+ 轮过程日志、30 轮分阶段统计。</p>
+    <div class="duo" style="grid-template-columns:1fr 1fr">
+      <div class="card rv">
+        <div class="markers" style="border:none;padding:22px 26px;display:block">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.18em;margin-bottom:14px">30-ROUND ATTRIBUTION · 分阶段归因</div>
+          <div class="mono" style="font-size:13px;line-height:2.1">
+            <div><span style="color:var(--gn)">WIN</span> 13/30 <span style="color:var(--dim)">整链取胜 · 43%</span></div>
+            <div><span style="color:var(--cy)">DEPLOY</span> 25/30 <span style="color:var(--dim)">到达部署 · 83%</span></div>
+            <div><span style="color:var(--bl)">stage1</span> 失败仅 2 <span style="color:var(--dim)">getter/alias 0 显式失败</span></div>
+            <div><span style="color:var(--am)">总耗时</span> 1451s <span style="color:var(--dim)">平均 48s/轮</span></div>
+          </div>
+          <div style="font-size:12.5px;color:var(--dim);margin-top:14px;border-top:1px dashed var(--line);padding-top:14px">
+            部署后 13/25 胜——剩余漏损全在 78952 竞态固有窗口；桥接环节（部署 / curl / 启动）已 100% 化。本机复现：Win11 26300 · round7 / 209s 取胜（2026-10-20）。</div>
+        </div>
+      </div>
+      <div class="card rv d1">
+        <div class="markers" style="border:none;padding:22px 26px;display:block">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.18em;margin-bottom:14px">DEFENSE VIEW · 防御视角</div>
+          <div style="font-size:13px;color:var(--mut);line-height:1.9">
+            ① <b style="color:var(--ink)">ReadUpTo 重试长度必须钳位</b>到调用方 size；handler 不应无条件信任 extra_memory_ranges<br>
+            ② 87491/85046 侧：比较器重入后重校验元素类型；写屏障不可跳过（上游已修）<br>
+            ③ 检测本质：<b style="color:var(--ink)">命令行特征是补丁式的</b>——certutil 被拦而 curl 放行；进程创建审计（渲染器→curl→exe→handler 链）更可靠<br>
+            <span class="mono" style="font-size:11px;color:var(--dim)">IOC：崩溃地址 0xDEAD00xx 即信标 · %TEMP% 出现 ms64/ev64/msdb 组合 · WAW 竞态痕迹</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ev-grid">
+      <div class="card ev rv" role="button" tabindex="0" data-g="0"><h4>全链取胜实拍（2026-11-11 复跑）</h4><p>渲染器按计划主动崩溃（STATUS_ACCESS_VIOLATION 页）· calc 从非沙箱 crashpad-handler 弹出 · round4 / 109s</p><div class="fn">evidence/POC_ONECLICK_WIN.png</div></div>
+      <div class="card ev rv d3" role="button" tabindex="0" data-g="1"><h4>五张架构图 · AI 绘制</h4><p>AI 绘制 · 总架构 / RX 别名 / IAT 自解析 / 武器化矩阵 / 78952 竞态</p><div class="fn">evidence/figs/ARCH-V4.svg</div></div>
+      <div class="card ev rv d1" role="button" tabindex="0" data-doc="doc-log" data-tt="console_win_round23.txt"><h4>过程日志全量</h4><p>60+ 轮 cl_W_*.log + 30 轮统计 rate_w4_30rounds.txt</p><div class="fn">evidence/console_win_round23.txt</div></div>
+      <div class="card ev rv d2" role="button" tabindex="0" data-doc="doc-report" data-tt="report.md"><h4>技术报告</h4><p>根因/四代演进/19 坑博物馆/复现手册的完整 writeup（v4）</p><div class="fn">report.md</div></div>
+      <div class="card ev rv d3" role="button" tabindex="0" data-doc="doc-readme" data-tt="README.md"><h4>复现入口</h4><p>自包含 poc 包：./run_chain.sh 一键到胜；./rate_w4.sh 30 归因</p><div class="fn">README.md → poc/run_chain.sh</div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap cols">
+    <div style="max-width:520px">
+      <div class="mono" style="color:var(--mut);letter-spacing:.18em;margin-bottom:10px">CHAIN // 87491 ⊕ 85046 ⊕ 78952</div>
+      本工作为<b>授权隔离研究环境</b>下的公开 n-day 复现研究，所有目标均为本地测试构建（Chrome for Testing），不涉及任何真实第三方系统。<br>
+      上游致谢：85046 — Salvatore Gulizia（Serotav）· 87491 — Jihyeon Jeong（Compsec Lab）。
+    </div>
+    <div class="mono">
+      <b>TARGET</b><br>Chrome for Testing 152.0.7977.54 x64<br>Windows 10 19045 / Win11 26300<br>Defender 实时 + 行为监控<br><br>
+      <b>REPO</b><br>windows/chain-87491-85046-78952-WIN/<br>report.md · evidence/ · poc/ · logs/
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════════ 交互模态层 ═══════════ -->
+<!-- 技术细节模板（隐藏） -->
+<div class="dtpl" id="d87491">
+  <div class="dsec">定位档案</div>
+  <div class="kv2">
+    <div><b>组件</b><span>V8 · 内联 Array.prototype.sort（Maglev / Turbofan 同构）</span></div>
+    <div><b>官方类别</b><span>Out-of-bounds write（Chromium 543557673）· ITW · KEV 在列</span></div>
+    <div><b>报告 / 致谢</b><span>Jihyeon Jeong（Compsec Lab, SNU）· $2,500</span></div>
+    <div><b>影响版本</b><span>Chrome &lt; 153.0.8010.36（85046 修复版之后仍带病）</span></div>
+  </div>
+  <div class="dsec">形态一 · sort 比较器混淆 → addrof</div>
+  <p>比较器在排序中途把对象数组 <b>fill(0) 清空</b>，V8 内部缓存的元素指针与写回时的类型预期失配——恢复排序时读出的「指针」被按 Smi 解析，地址以奇数整数形式漏出：</p>
+  <div class="code"><span class="c">// 触发：比较器副作用 × 内联 sort 快照写回</span>
+function confuse(a){ function cmp(){ a.fill(0); return 0 } a.sort(cmp) }
+function addrof(o){ const a=[o,o]; confuse(a);
+  return ((Math.round(smiValue(a)+0.25)*2)|1)>>>0 }</div>
+  <div class="dsec">形态二 · 私有异常符号伪造 → 跳表别名（RX 可写之钥）</div>
+  <p>复制 wasm <b>私有异常符号 key</b>、伪造 getter，在 optimized 代码的<b>无副作用窗口</b>内换掉共享跳表 → mixed dispatch 用 D 的函数配 A 的<b>过期 trusted instance</b> 执行 → tiering-budget 越界（<span class="mono">A.tiering_budgets[2]</span>）→ memory index 6 的越界槽位恰好解析为<b>近跳转指针</b>——对 wasm 代码区形成同时可读可写的别名。cage 读写由此升级为原生代码执行。</p>
+  <div class="dsec">Windows 适配要点（实测）</div>
+  <div class="kv2">
+    <div><b>脚本形态</b><span>必须以内联脚本结构运行——外部 .js 成功率骤降</span></div>
+    <div><b>常量锁定</b><span>V8 map 常量（如 DOUBLE_MAP=0x01032879）由 addrof 探针实测提取，随 build 锁定</span></div>
+    <div><b>结构依赖</b><span>87491 把 cage 读写兑换成原生执行；85046 是它的读写供应商（bagel 结构）</span></div>
+  </div>
+  <div class="dsec">链内验收标记</div>
+  <div class="code">ALIAS-TRY mi=6 → ALIAS jumps=16 → <span class="g">ALIAS OK body=0x1980</span>
+PRE-DEPLOY base=0x18e2 len=2617 → WROTE blob → <span class="g">VERIFY bad4=0</span></div>
+</div>
+
+<div class="dtpl" id="d85046">
+  <div class="dsec">定位档案</div>
+  <div class="kv2">
+    <div><b>组件</b><span>V8 · CWE-843 类型混淆 · ITW · CISA KEV（2026-09-04 加入）</span></div>
+    <div><b>上游编号</b><span>Chromium 542403045 · CVSS 3.1 8.8（AV:N/AC:L/PR:N/UI:R）</span></div>
+    <div><b>引入 CL</b><span class="mono">v8@66a3f1e9（2026-04-27，"Reland: Inline Array.prototype.sort in Maglev and Turbofan"）</span></div>
+    <div><b>修复 CL</b><span class="mono">v8@e0562d87（2026-08-07）→ Chrome 152.0.7977.82（2026-09-03）</span></div>
+    <div><b>报告 / 致谢</b><span>Salvatore Gulizia（Serotav）· $1,000 · 公开 writeup《When Sorting Leads To Confusion》</span></div>
+  </div>
+  <div class="dsec">根因 · 并集 kind 对「写」不再是安全近似</div>
+  <p>内联 sort 对多态反馈 <span class="mono">{PACKED_SMI, PACKED}</span> 求 elements-kind <b>并集</b>（= PACKED）并按它特化「排序快照写回」。并集对<b>只读</b>迭代（forEach/map）是安全上界；但 sort 多了<b>写回</b>——回调里 <span class="mono">fill(0)</span> 把数组原地窄化回 PACKED_SMI 后，回调后的 CheckMaps 只检查 map ∈ 原集合、照过，写回仍按 PACKED 语义把 <b>HeapObject 指针塞进声称全是 Smi 的数组</b>，且<b>跳过写屏障</b>。</p>
+  <div class="code"><span class="c">// 编译图结构（修复前）</span>
+checkReceiverMaps();
+temp = copy(receiver.elements);      <span class="c">// 按并集 kind 快照</span>
+insertionSort(temp, comparefn);      <span class="c">// 纯 JS，可任意副作用</span>
+checkReceiverMapsAndLength();        <span class="c">// 窄化后的 map 照过</span>
+copy(temp, receiver.elements);       <span class="y">// 按 PACKED 写回 → 指针入 Smi 数组</span></div>
+  <div class="dsec">利用 · 年轻代 GC 一瞬的窗口</div>
+  <p>写屏障被跳过意味着 GC 不知道旧生代对象引用了新空间：GC 移动对象后<b>旧指针仍滞留新空间</b>。在旧指针位置喷射假 JSArray 头（map=PACKED_DOUBLE），<span class="mono">template.slice()</span> 把回收内存当 double 数组复用——得到与 victim 数组共享 elements 的 <b>cage 内任意读写（read32/write32）</b>。</p>
+  <div class="dsec">概率特征（30 轮终测）</div>
+  <div class="kv2">
+    <div><b>新鲜度</b><span>必须 fresh renderer（每轮重启 chrome）；页内 reload 复用脏堆 → 成功率崩至 ~3%（29 连败实测）</span></div>
+    <div><b>观测</b><span>失败模式高度可辨识（young GC not observed / bootstrap failed），终测仅 2 轮失败</span></div>
+  </div>
+  <div class="dsec">Linux 侧独立验证（同根因）</div>
+  <div class="code">cage 任意读写  <span class="g">6/6</span>   exploit_final_85046.html（read64/write64 双重自验证）
+V8 cage 逃逸   <span class="g">3/3</span>   JDT arity 失配 → 受控 RIP+RSP → ROP（pivot 基准）
+渲染器 ACE     <span class="g">10/10</span>  ROP 建文件 /tmp/pwn_85046（OS 沙箱开启下同样成立）</div>
+  <div class="dsec">链内验收标记</div>
+  <div class="code">GCDBG addrof sane=true → ST1 reclaim hit=14 → ST1 fakeobj ok
+→ <span class="g">ST1 cage_rw ready · proof 13.37=13.37</span></div>
+</div>
+
+<div class="dtpl" id="d78952">
+  <div class="dsec">定位档案</div>
+  <div class="kv2">
+    <div><b>组件</b><span>crashpad · 崩溃收集链路（信任边界错误 + 重试溢出）</span></div>
+    <div><b>进程</b><span class="mono">chrome.exe --type=crashpad-handler —— 非沙箱，全链唯一的越狱出口</span></div>
+    <div><b>错误本质</b><span>① handler 无条件信任客户端声明的 extra_memory_ranges ② ReadUpTo 重试长度不钳位回 size</span></div>
+  </div>
+  <div class="dsec">信任边界划错了地方</div>
+  <p>崩溃报告由<b>非沙箱</b>的 crashpad-handler 收集。客户端 PE 节 <span class="mono">"CPADinfo"</span>（CrashpadInfo）里的 <span class="mono">extra_memory_ranges</span> 指针告诉 handler 崩溃时<b>额外读取哪些区间</b>——渲染器内的攻击者可完全控制这份声明，而 handler 照单全收。</p>
+  <div class="dsec">三拍时序（放大图见 §06）</div>
+  <div class="code"><span class="c">// BEAT 1 微脉冲：6 个内核线程翻转目标页保护</span>
+PAGE_NOACCESS ↔ PAGE_READWRITE   <span class="c">// 微脉冲窗口</span>
+
+<span class="c">// BEAT 2 ReadUpTo 无钳位重试</span>
+请求 size = <span class="y">0xB8</span>（触发段精确设定）
+首读撞 NOACCESS → 重试读出 <span class="y">0x168</span> → 溢出 <span class="y">0xB0</span> 盖到相邻堆槽
+  → 相邻对象 = minidump 流的 SMMW（StreamMinMaxWriter）
+
+<span class="c">// BEAT 3 模板劫持 → 派发</span>
+SMMW 模板被改 → Next() 把 victim 页 memcpy 进 handler .data（plant 区）
+  plant 区：[Q]=宽字符 DLL 名 · [Q+8]=LoadLibraryW
+Flush() 尾部 CFG 派发 <span class="g">LoadLibraryW(Q)</span> → handler 内任意 DLL 加载</div>
+  <div class="dsec">竞态器实测日志（ms64.exe / dbgwrap 观测）</div>
+  <div class="code">[*] hole chain = 0000000040000000
+[*] CPADinfo=00007FF77FDFE000 sig=0x43506164 size=0x38 entries=41
+[*] 触发读 {page+0xe98, 0xb0}，预期越界 0xb8
+[*] plant page = 0x60000000 · NtCreateThreadEx flags=0x42 OK
+[dbgwrap] <span class="g">WAW#0 cs_=plant+0x10</span>  <span class="c">← 模板劫持命中签名</span></div>
+  <div class="dsec">统计与修复</div>
+  <div class="kv2">
+    <div><b>部署后胜率</b><span>13/25（52%）——剩余漏损全在 iters=8 的固有竞态窗口</span></div>
+    <div><b>修复建议</b><span>ReadUpTo 重试长度钳位到调用方 size；handler 不应无条件信任 extra_memory_ranges</span></div>
+    <div><b>检测 IOC</b><span>崩溃前后 crashpad 行为异常（WAW 竞态痕迹）· %TEMP% 出现 ms64/ev64/msdb 组合</span></div>
+  </div>
+</div>
+
+<!-- 内嵌文档模板挂点（build_embed.py 注入） -->
+<!--DOCS-->
+
+<!-- 详情模态 -->
+<div class="modal" id="m-detail" aria-hidden="true">
+  <div class="bg" data-close></div>
+  <div class="panel" role="dialog" aria-modal="true">
+    <div class="ph"><span class="tid" id="dt-tid"></span><span class="tt" id="dt-tt"></span><button class="x" data-close aria-label="关闭">✕</button></div>
+    <div class="pb" id="dt-body"></div>
+  </div>
+</div>
+<!-- 证据灯箱 -->
+<div class="modal" id="m-lb" aria-hidden="true">
+  <div class="bg" data-close></div>
+  <div class="panel" role="dialog" aria-modal="true" style="max-width:1080px">
+    <div class="ph"><span class="tid">EVIDENCE</span><span class="tt" id="lb-tt"></span>
+      <div class="lb-nav" style="margin-left:auto;display:flex;gap:8px">
+        <button id="lb-prev" aria-label="上一张">‹</button><button id="lb-next" aria-label="下一张">›</button><button class="x" data-close aria-label="关闭" style="margin-left:2px">✕</button>
+      </div></div>
+    <div class="lb-media"><img id="lb-img" alt="证据图片"></div>
+    <div class="lb-cap"><span id="lb-cap"></span><span class="cnt" id="lb-cnt"></span></div>
+  </div>
+</div>
+<!-- 图表缩放器 -->
+<div class="modal zoom" id="m-zoom" aria-hidden="true">
+  <div class="bg" data-close></div>
+  <div class="panel" role="dialog" aria-modal="true">
+    <div class="ph"><span class="tid">DIAGRAM</span><span class="tt" id="z-tt"></span><button class="x" data-close aria-label="关闭" style="margin-left:auto">✕</button></div>
+    <div class="zstage" id="zstage"><div class="zinner" id="zinner"></div></div>
+    <div class="zbar"><span class="zl" id="z-lbl"></span>
+      <button id="z-out" aria-label="缩小">−</button><button id="z-in" aria-label="放大">+</button>
+      <button id="z-fit">适应</button><button id="z-100">1:1</button>
+      <span class="zl" style="margin:0 0 0 6px" id="z-pct">100%</span></div>
+  </div>
+</div>
+
+<!--MARKED-->
+
+<script>
+// ── 入场动效（?static 可全显，用于整页截图/打印）──
+if(location.search.includes('static'))document.documentElement.classList.add('static');
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('on');io.unobserve(e.target)}}),{threshold:.12,rootMargin:'0px 0px -8% 0px'});
+document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+// ── 数字滚动 ──
+const cio=new IntersectionObserver(es=>es.forEach(e=>{
+  if(!e.isIntersecting)return;const el=e.target,t=parseFloat(el.dataset.count),dec=+(el.dataset.dec||0);
+  const st=performance.now(),dur=1400;
+  (function f(n){const p=Math.min((n-st)/dur,1),v=t*(1-Math.pow(1-p,3));
+    el.textContent=dec?v.toFixed(dec):Math.round(v);if(p<1)requestAnimationFrame(f)})(st);
+  cio.unobserve(el);
+}),{threshold:.5});
+document.querySelectorAll('[data-count]').forEach(el=>cio.observe(el));
+// ── 进度条 ──
+addEventListener('scroll',()=>{const h=document.documentElement;document.getElementById('bar').style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%'},{passive:true});
+// ── console 标记巡走 ──
+(function(){const mks=[...document.querySelectorAll('#markers .mk')];let i=0;
+if(!mks.length)return;setInterval(()=>{mks.forEach(m=>m.classList.remove('on'));mks[i].classList.add('on');i=(i+1)%mks.length},1100)})();
+// ── 工作流运行轨迹 ──
+(function(){
+  const lines=[
+    ['orch','目标分解 → 侦察扇出 ×3（CVE 矩阵 / 版本窗口 / 上游 CL）',''],
+    ['recon-1','候选矩阵：5281 GPU 链另选 · 5279 parser 遮蔽（6 构建实测）· 6554=DoS 弃用',''],
+    ['recon-2','85046+87491 与 5281 零交集 · sort 归约 M149+ → 可组链','ok'],
+    ['recon-3','上游 CL 挖掘：引入 v8@66a3f1e9（2026-04-27）· 修复 e0562d87（.82）','ok'],
+    ['root','85046 根因：union-kind 写回——并集对读安全、对写危险','wa'],
+    ['root','87491 根因：私有异常符号 mixed dispatch · mi=6 越界=跳表指针','wa'],
+    ['root','78952 根因：ReadUpTo 重试长度未钳位 · 0xB8 请求读出 0x168','wa'],
+    ['chain','原语阶梯：addrof ⊕ cage R/W ⊕ RX 别名 → ACE → 桥接 → 竞态',''],
+    ['build','stage1 · GCDBG sane=true → ST1 cage_rw ready · proof 13.37=13.37','ok'],
+    ['build','别名 · ALIAS OK body=0x1980 → WROTE blob → VERIFY bad4=0','ok'],
+    ['build','部署 · ORIGIN-OK=true DEPLOYED → 主动崩溃 0xDEAD0021','ok'],
+    ['stab','30 轮归因：WIN=13 DEPLOY=25 · stage1 失败仅 2 · 桥接 100%',''],
+    ['judge','门禁通过 → 证据归档 · FULL-CHAIN WIN round7 / 209s','ok'],
+  ];
+  const box=document.getElementById('wlog');if(!box)return;
+  let li=0;
+  function push(){
+    const [who,txt,st]=lines[li%lines.length];
+    const d=document.createElement('div');d.className='ln';
+    const ts=new Date().toTimeString().slice(0,8);
+    d.innerHTML='<span class="ts">'+ts+'</span><span class="ag">['+who+']</span> '+txt+(st==='ok'?' <span class="ok">✓</span>':st==='wa'?' <span class="wa">▲</span>':'');
+    box.appendChild(d);requestAnimationFrame(()=>d.classList.add('in'));
+    while(box.children.length>9)box.removeChild(box.firstChild);
+    li++;if(li%lines.length===0){setTimeout(()=>{box.querySelectorAll('.ln').forEach(e=>e.classList.remove('in'));setTimeout(()=>{box.innerHTML=''},500)},2600)}
+  }
+  push();let t=setInterval(push,1500);
+})();
+// ── 78952 翻页闪烁 ──
+(function(){const a=document.getElementById('flipA'),b=document.getElementById('flipB');if(!a)return;
+  setInterval(()=>{const o=a.getAttribute('opacity')==='0';a.setAttribute('opacity',o?'1':'0');b.setAttribute('opacity',o?'0':'1')},700)})();
+
+/* ═══ 交互层：模态 / 详情 / 灯箱 / 缩放 ═══ */
+const openModals=[];
+function openModal(id){const m=document.getElementById(id);if(!m)return;m.classList.add('open');m.setAttribute('aria-hidden','false');openModals.push(m);document.body.style.overflow='hidden'}
+function closeTop(){const m=openModals.pop();if(!m)return;m.classList.remove('open');m.setAttribute('aria-hidden','true');if(!openModals.length)document.body.style.overflow=''}
+document.querySelectorAll('.modal [data-close]').forEach(el=>el.addEventListener('click',closeTop));
+addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeTop();return}
+  if(e.key==='ArrowLeft')lbGo(-1);
+  if(e.key==='ArrowRight')lbGo(1);
+});
+
+/* ── 三块拼图 → 技术详情 ── */
+document.querySelectorAll('[data-detail]').forEach(el=>{
+  const open=()=>{const t=document.getElementById(el.dataset.detail);if(!t)return;
+    document.getElementById('dt-tid').textContent=el.dataset.tid;
+    document.getElementById('dt-tt').textContent=el.dataset.tt;
+    document.getElementById('dt-body').innerHTML=t.innerHTML;
+    document.getElementById('dt-body').scrollTop=0;openModal('m-detail')};
+  el.addEventListener('click',open);
+  el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}});
+});
+
+/* ── 证据灯箱画廊 ── */
+const GALLERY=[
+  {s:'evidence/POC_ONECLICK_WIN.png', f:'evidence/POC_ONECLICK_WIN.png', t:'全链取胜实拍',   c:'渲染器按计划主动崩溃（STATUS_ACCESS_VIOLATION）· calc 从非沙箱 crashpad-handler 弹出 · 2026-11-11 复跑 round4 / 109s'},
+  {s:'evidence/figs/ARCH-V4.svg', f:'evidence/figs/ARCH-V4.svg', t:'架构图 · 全链 V4', c:'四泳道总架构：网页 → 渲染层 ACE → 桥接 → handler 逃逸'},
+  {s:'evidence/figs/RX-ALIAS.svg', f:'evidence/figs/RX-ALIAS.svg', t:'架构图 · RX 别名', c:'wasm 跳表别名与 payload 部署布局（body 窗口与校验）'},
+  {s:'evidence/figs/IAT-RESOLVE.svg', f:'evidence/figs/IAT-RESOLVE.svg', t:'架构图 · IAT 自解析', c:'PEB → IAT → kernel32 自取流水线 · 零常量/零遍历/零新 DLL'},
+  {s:'evidence/figs/WEAPONIZE.svg', f:'evidence/figs/WEAPONIZE.svg', t:'架构图 · 武器化演进', c:'四代方案生死簿与 AV 拦截矩阵'},
+  {s:'evidence/figs/RACE-78952.svg', f:'evidence/figs/RACE-78952.svg', t:'架构图 · 78952 竞态', c:'翻页微脉冲 × ReadUpTo 溢出 × SMMW 劫持三拍时序'},
+];
+let lbIdx=0;
+function lbShow(i){lbIdx=(i+GALLERY.length)%GALLERY.length;const g=GALLERY[lbIdx];
+  const img=document.getElementById('lb-img');img.src=g.s;img.alt=g.t;
+  document.getElementById('lb-tt').textContent=g.t;
+  document.getElementById('lb-cap').textContent=g.c+'  ·  '+g.f;
+  document.getElementById('lb-cnt').textContent=(lbIdx+1)+' / '+GALLERY.length}
+function lbGo(d){if(document.getElementById('m-lb').classList.contains('open'))lbShow(lbIdx+d)}
+document.querySelectorAll('[data-g]').forEach(el=>{
+  const open=()=>{lbShow(+el.dataset.g);openModal('m-lb')};
+  el.addEventListener('click',open);
+  el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}});
+});
+document.getElementById('lb-prev').addEventListener('click',()=>lbGo(-1));
+document.getElementById('lb-next').addEventListener('click',()=>lbGo(1));
+
+/* ── 文档内嵌查看器（日志原文 / 报告·README 渲染 markdown）── */
+document.querySelectorAll('[data-doc]').forEach(el=>{
+  const open=()=>{const t=document.getElementById(el.dataset.doc);if(!t)return;
+    const md=t.querySelector('script[type="text/markdown"]');
+    const body=document.getElementById('dt-body');
+    document.getElementById('dt-tid').textContent=md?'MARKDOWN':'FILE';
+    document.getElementById('dt-tt').textContent=el.dataset.tt||'';
+    if(md&&window.marked){
+      // 图片语法降级为链接（画廊里已有对应实拍，避免单文件模式下破图）
+      const src=md.textContent.replace(/!\[([^\]]*)\]\(([^)\s]+)[^)]*\)/g,'[$1｜🖼 查看原图]($2)');
+      body.innerHTML='<div class="mdv">'+marked.parse(src)+'</div>';
+    }else{
+      body.innerHTML=t.innerHTML;
+    }
+    body.scrollTop=0;openModal('m-detail')};
+  el.addEventListener('click',open);
+  el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}});
+});
+
+/* ── 图表缩放查看器（克隆 SVG · 改写 id · 拖拽/滚轮缩放）── */
+const zst={s:1,tx:0,ty:0,fit:1};let zVB=[0,0,1200,640];
+function cloneSvg(id){
+  const c=document.getElementById(id).cloneNode(true),map={};
+  c.querySelectorAll('[id]').forEach((el,i)=>{const o=el.id;map[o]=o+'__z'+i;el.id=map[o]});
+  c.querySelectorAll('*').forEach(el=>{[...el.attributes].forEach(a=>{
+    if(typeof a.value==='string'&&a.value.includes('url(#'))
+      a.value=a.value.replace(/url\(#([^)]+)\)/g,(m,o)=>map[o]?'url(#'+map[o]+')':m)})});
+  c.removeAttribute('id');c.style.width='100%';c.style.height='auto';c.style.display='block';return c}
+function zApply(){const inn=document.getElementById('zinner');
+  inn.style.transform=`translate(${zst.tx}px,${zst.ty}px) scale(${zst.s})`;
+  document.getElementById('z-pct').textContent=Math.round(zst.s*100)+'%'}
+function zFit(){const st=document.getElementById('zstage'),inn=document.getElementById('zinner');
+  const W=zVB[2],H=zVB[3];
+  inn.style.width=W+'px';inn.style.height=H+'px';
+  zst.fit=Math.min(st.clientWidth/W,st.clientHeight/H)*0.96;
+  zst.s=zst.fit;zst.tx=(st.clientWidth-W*zst.s)/2;zst.ty=(st.clientHeight-H*zst.s)/2;zApply()}
+document.querySelectorAll('[data-zoom]').forEach(btn=>btn.addEventListener('click',()=>{
+  const src=document.getElementById(btn.dataset.zoom);
+  const inn=document.getElementById('zinner');inn.innerHTML='';inn.appendChild(cloneSvg(btn.dataset.zoom));
+  zVB=(src.getAttribute('viewBox')||'0 0 1200 640').split(/\s+/).map(Number);
+  document.getElementById('z-tt').textContent=btn.dataset.zl||'';
+  document.getElementById('z-lbl').textContent=(btn.dataset.zl||'').toUpperCase();
+  openModal('m-zoom');requestAnimationFrame(zFit)}));
+function zBtn(f){const st=document.getElementById('zstage'),mx=st.clientWidth/2,my=st.clientHeight/2;
+  const ns=Math.min(Math.max(zst.s*f,.12),8);
+  zst.tx=mx-(mx-zst.tx)*(ns/zst.s);zst.ty=my-(my-zst.ty)*(ns/zst.s);zst.s=ns;zApply()}
+document.getElementById('z-in').addEventListener('click',()=>zBtn(1.25));
+document.getElementById('z-out').addEventListener('click',()=>zBtn(1/1.25));
+document.getElementById('z-fit').addEventListener('click',zFit);
+document.getElementById('z-100').addEventListener('click',()=>{const st=document.getElementById('zstage'),W=zVB[2];
+  zst.s=1;zst.tx=(st.clientWidth-W)/2;zst.ty=20;zApply()});
+(function(){ // 滚轮缩放（以光标为锚点）
+  const st=document.getElementById('zstage');
+  st.addEventListener('wheel',e=>{e.preventDefault();
+    const r=st.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+    const ns=Math.min(Math.max(zst.s*Math.exp(-e.deltaY*.0016),.12),8);
+    zst.tx=mx-(mx-zst.tx)*(ns/zst.s);zst.ty=my-(my-zst.ty)*(ns/zst.s);zst.s=ns;zApply()},{passive:false});
+})();
+(function(){ // 拖拽平移
+  const st=document.getElementById('zstage');let dn=false,lx=0,ly=0;
+  st.addEventListener('pointerdown',e=>{dn=true;lx=e.clientX;ly=e.clientY;st.classList.add('drag');st.setPointerCapture(e.pointerId)});
+  st.addEventListener('pointermove',e=>{if(!dn)return;zst.tx+=e.clientX-lx;zst.ty+=e.clientY-ly;lx=e.clientX;ly=e.clientY;zApply()});
+  ['pointerup','pointercancel'].forEach(ev=>st.addEventListener(ev,()=>{dn=false;st.classList.remove('drag')}));
+  st.addEventListener('dblclick',zFit);
+})();
+addEventListener('resize',()=>{if(document.getElementById('m-zoom').classList.contains('open'))zFit()});
+</script>
+</body>
+</html>

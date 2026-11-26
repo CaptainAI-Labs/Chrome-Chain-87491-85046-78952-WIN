@@ -1,0 +1,405 @@
+
+************* Preparing the environment for Debugger Extensions Gallery repositories **************
+   ExtensionRepository : Implicit
+   UseExperimentalFeatureForNugetShare : true
+   AllowNugetExeUpdate : true
+   NonInteractiveNuget : true
+   AllowNugetMSCredentialProviderInstall : true
+   AllowParallelInitializationOfLocalRepositories : true
+   EnableRedirectToChakraJsProvider : false
+
+   -- Configuring repositories
+      ----> Repository : LocalInstalled, Enabled: true
+      ----> Repository : UserExtensions, Enabled: true
+
+>>>>>>>>>>>>> Preparing the environment for Debugger Extensions Gallery repositories completed, duration 0.000 seconds
+
+************* Waiting for Debugger Extensions Gallery to Initialize **************
+
+>>>>>>>>>>>>> Waiting for Debugger Extensions Gallery to Initialize completed, duration 0.031 seconds
+   ----> Repository : UserExtensions, Enabled: true, Packages count: 0
+   ----> Repository : LocalInstalled, Enabled: true, Packages count: 30
+
+Microsoft (R) Windows Debugger Version 10.0.28000.2114 AMD64
+Copyright (c) Microsoft Corporation. All rights reserved.
+
+CommandLine: F:/Chrome/windows/shared/chrome/chrome-win64-152.0.7977.54/chrome-win64/chrome.exe
+
+************* Path validation summary **************
+Response                         Time (ms)     Location
+Deferred                                       srv*
+Symbol search path is: srv*
+Executable search path is: 
+
++------------------------------------------------------------------------+
+| This target supports Hardware-enforced Stack Protection. A HW based    |
+| "Shadow Stack" may be available to assist in debugging and analysis.   |
+| See aka.ms/userhsp for more info.                                      |
+|                                                                        |
+| dps @ssp                                                               |
+|                                                                        |
++------------------------------------------------------------------------+
+
+ModLoad: 00007ff6`a55c0000 00007ff6`a5a17000   chrome.exe
+ModLoad: 00007ffa`88f90000 00007ffa`891fc000   ntdll.dll
+ModLoad: 00007ffa`882d0000 00007ffa`8839b000   C:\WINDOWS\System32\KERNEL32.DLL
+ModLoad: 00007ffa`861c0000 00007ffa`865c9000   C:\WINDOWS\System32\KERNELBASE.dll
+ModLoad: 00007ffa`82fe0000 00007ffa`8307f000   C:\WINDOWS\SYSTEM32\apphelp.dll
+ModLoad: 00007ffa`0c700000 00007ffa`0c9bc000   F:\Chrome\windows\shared\chrome\chrome-win64-152.0.7977.54\chrome-win64\chrome_elf.dll
+ModLoad: 00007ffa`7fbd0000 00007ffa`7fbdb000   C:\WINDOWS\SYSTEM32\VERSION.dll
+ModLoad: 00007ffa`87380000 00007ffa`87429000   C:\WINDOWS\System32\msvcrt.dll
+(590c.5a44): Break instruction exception - code 80000003 (first chance)
+ntdll!LdrpDoDebuggerBreak+0x35:
+00007ffa`890b5245 cc              int     3
+0:000> cdb: Reading initial command 'uf chrome+0x347810; q'
+*** WARNING: Unable to verify checksum for chrome.exe
+chrome!IsSandboxedProcess+0x24fa90:
+00007ff6`a5907810 4157            push    r15
+00007ff6`a5907812 4156            push    r14
+00007ff6`a5907814 4154            push    r12
+00007ff6`a5907816 56              push    rsi
+00007ff6`a5907817 57              push    rdi
+00007ff6`a5907818 53              push    rbx
+00007ff6`a5907819 4881ec78010000  sub     rsp,178h
+00007ff6`a5907820 4c89cf          mov     rdi,r9
+00007ff6`a5907823 4c89c6          mov     rsi,r8
+00007ff6`a5907826 4889d3          mov     rbx,rdx
+00007ff6`a5907829 4989ce          mov     r14,rcx
+00007ff6`a590782c 488b050d480800  mov     rax,qword ptr [chrome!IsSandboxedProcess+0x2d42c0 (00007ff6`a598c040)]
+00007ff6`a5907833 4831e0          xor     rax,rsp
+00007ff6`a5907836 4889842470010000 mov     qword ptr [rsp+170h],rax
+00007ff6`a590783e 4c8da42468010000 lea     r12,[rsp+168h]
+00007ff6`a5907846 49c7042400000000 mov     qword ptr [r12],0
+00007ff6`a590784e 488b4908        mov     rcx,qword ptr [rcx+8]
+00007ff6`a5907852 4c89642420      mov     qword ptr [rsp+20h],r12
+00007ff6`a5907857 4d89c8          mov     r8,r9
+00007ff6`a590785a 4989f1          mov     r9,rsi
+00007ff6`a590785d ff15ed6c0700    call    qword ptr [chrome!IsSandboxedProcess+0x2c67d0 (00007ff6`a597e550)]
+00007ff6`a5907863 85c0            test    eax,eax
+00007ff6`a5907865 7440            je      chrome!IsSandboxedProcess+0x24fb27 (00007ff6`a59078a7)
+
+chrome!IsSandboxedProcess+0x24fae7:
+00007ff6`a5907867 488bbc2468010000 mov     rdi,qword ptr [rsp+168h]
+00007ff6`a590786f 4885ff          test    rdi,rdi
+00007ff6`a5907872 0f883e010000    js      chrome!IsSandboxedProcess+0x24fc36 (00007ff6`a59079b6)
+
+chrome!IsSandboxedProcess+0x24faf8:
+00007ff6`a5907878 488b842470010000 mov     rax,qword ptr [rsp+170h]
+00007ff6`a5907880 4831e0          xor     rax,rsp
+00007ff6`a5907883 488b0db6470800  mov     rcx,qword ptr [chrome!IsSandboxedProcess+0x2d42c0 (00007ff6`a598c040)]
+00007ff6`a590788a 4839c1          cmp     rcx,rax
+00007ff6`a590788d 0f852b010000    jne     chrome!IsSandboxedProcess+0x24fc3e (00007ff6`a59079be)
+
+chrome!IsSandboxedProcess+0x24fb13:
+00007ff6`a5907893 4889f8          mov     rax,rdi
+00007ff6`a5907896 4881c478010000  add     rsp,178h
+00007ff6`a590789d 5b              pop     rbx
+00007ff6`a590789e 5f              pop     rdi
+00007ff6`a590789f 5e              pop     rsi
+00007ff6`a59078a0 415c            pop     r12
+00007ff6`a59078a2 415e            pop     r14
+00007ff6`a59078a4 415f            pop     r15
+00007ff6`a59078a6 c3              ret
+
+chrome!IsSandboxedProcess+0x24fb27:
+00007ff6`a59078a7 ff15f3690700    call    qword ptr [chrome!IsSandboxedProcess+0x2c6520 (00007ff6`a597e2a0)]
+00007ff6`a59078ad 3d2b010000      cmp     eax,12Bh
+00007ff6`a59078b2 7532            jne     chrome!IsSandboxedProcess+0x24fb66 (00007ff6`a59078e6)
+
+chrome!IsSandboxedProcess+0x24fb34:
+00007ff6`a59078b4 e84706dbff      call    chrome!IsSandboxedProcess+0x180 (00007ff6`a56b7f00)
+00007ff6`a59078b9 4989c7          mov     r15,rax
+00007ff6`a59078bc e83f06dbff      call    chrome!IsSandboxedProcess+0x180 (00007ff6`a56b7f00)
+00007ff6`a59078c1 48ffc8          dec     rax
+00007ff6`a59078c4 4821d8          and     rax,rbx
+00007ff6`a59078c7 4929c7          sub     r15,rax
+00007ff6`a59078ca 498b4e08        mov     rcx,qword ptr [r14+8]
+00007ff6`a59078ce 4c89642420      mov     qword ptr [rsp+20h],r12
+00007ff6`a59078d3 4889da          mov     rdx,rbx
+00007ff6`a59078d6 4989f8          mov     r8,rdi
+00007ff6`a59078d9 4d89f9          mov     r9,r15
+00007ff6`a59078dc ff156e6c0700    call    qword ptr [chrome!IsSandboxedProcess+0x2c67d0 (00007ff6`a597e550)]
+00007ff6`a59078e2 85c0            test    eax,eax
+00007ff6`a59078e4 7581            jne     chrome!IsSandboxedProcess+0x24fae7 (00007ff6`a5907867)
+
+chrome!IsSandboxedProcess+0x24fb66:
+00007ff6`a59078e6 b902000000      mov     ecx,2
+00007ff6`a59078eb e800d8edff      call    chrome!IsSandboxedProcess+0x12d370 (00007ff6`a57e50f0)
+00007ff6`a59078f0 48c7c7ffffffff  mov     rdi,0FFFFFFFFFFFFFFFFh
+00007ff6`a59078f7 84c0            test    al,al
+00007ff6`a59078f9 0f8479ffffff    je      chrome!IsSandboxedProcess+0x24faf8 (00007ff6`a5907878)
+
+chrome!IsSandboxedProcess+0x24fb7f:
+00007ff6`a59078ff e81cfedaff      call    chrome!GetHandleVerifier+0x32660 (00007ff6`a56b7720)
+00007ff6`a5907904 89442420        mov     dword ptr [rsp+20h],eax
+00007ff6`a5907908 488d1501f20600  lea     rdx,[chrome!IsSandboxedProcess+0x2bed90 (00007ff6`a5976b10)]
+00007ff6`a590790f 4c8d742430      lea     r14,[rsp+30h]
+00007ff6`a5907914 4c89f1          mov     rcx,r14
+00007ff6`a5907917 41b84a000000    mov     r8d,4Ah
+00007ff6`a590791d 41b902000000    mov     r9d,2
+00007ff6`a5907923 e808b5d7ff      call    chrome+0xc2e30 (00007ff6`a5682e30)
+00007ff6`a5907928 488d4c2440      lea     rcx,[rsp+40h]
+00007ff6`a590792d 488d154cf20600  lea     rdx,[chrome!IsSandboxedProcess+0x2bee00 (00007ff6`a5976b80)]
+00007ff6`a5907934 41b810000000    mov     r8d,10h
+00007ff6`a590793a e891d2ddff      call    chrome!IsSandboxedProcess+0x2ce50 (00007ff6`a56e4bd0)
+00007ff6`a590793f 488b08          mov     rcx,qword ptr [rax]
+00007ff6`a5907942 48634904        movsxd  rcx,dword ptr [rcx+4]
+00007ff6`a5907946 8b540808        mov     edx,dword ptr [rax+rcx+8]
+00007ff6`a590794a 83e2b5          and     edx,0FFFFFFB5h
+00007ff6`a590794d 83ca08          or      edx,8
+00007ff6`a5907950 89540808        mov     dword ptr [rax+rcx+8],edx
+00007ff6`a5907954 4889c1          mov     rcx,rax
+00007ff6`a5907957 4889da          mov     rdx,rbx
+00007ff6`a590795a e841d9d1ff      call    chrome+0x652a0 (00007ff6`a56252a0)
+00007ff6`a590795f 488b08          mov     rcx,qword ptr [rax]
+00007ff6`a5907962 48634904        movsxd  rcx,dword ptr [rcx+4]
+00007ff6`a5907966 8b540808        mov     edx,dword ptr [rax+rcx+8]
+00007ff6`a590796a 83e2b5          and     edx,0FFFFFFB5h
+00007ff6`a590796d 83ca02          or      edx,2
+00007ff6`a5907970 89540808        mov     dword ptr [rax+rcx+8],edx
+00007ff6`a5907974 488d1519f20600  lea     rdx,[chrome!IsSandboxedProcess+0x2bee14 (00007ff6`a5976b94)]
+00007ff6`a590797b 41b804000000    mov     r8d,4
+00007ff6`a5907981 4889c1          mov     rcx,rax
+00007ff6`a5907984 e847d2ddff      call    chrome!IsSandboxedProcess+0x2ce50 (00007ff6`a56e4bd0)
+00007ff6`a5907989 4889c1          mov     rcx,rax
+00007ff6`a590798c 4889f2          mov     rdx,rsi
+00007ff6`a590798f e80cd9d1ff      call    chrome+0x652a0 (00007ff6`a56252a0)
+00007ff6`a5907994 488d1505f20600  lea     rdx,[chrome!IsSandboxedProcess+0x2bee20 (00007ff6`a5976ba0)]
+00007ff6`a590799b 41b80d000000    mov     r8d,0Dh
+00007ff6`a59079a1 4889c1          mov     rcx,rax
+00007ff6`a59079a4 e827d2ddff      call    chrome!IsSandboxedProcess+0x2ce50 (00007ff6`a56e4bd0)
+00007ff6`a59079a9 4c89f1          mov     rcx,r14
+00007ff6`a59079ac e87fc5d5ff      call    chrome+0xa3f30 (00007ff6`a5663f30)
+00007ff6`a59079b1 e9c2feffff      jmp     chrome!IsSandboxedProcess+0x24faf8 (00007ff6`a5907878)
+
+chrome!IsSandboxedProcess+0x24fc36:
+00007ff6`a59079b6 cc              int     3
+00007ff6`a59079b7 31ff            xor     edi,edi
+00007ff6`a59079b9 e9bafeffff      jmp     chrome!IsSandboxedProcess+0x24faf8 (00007ff6`a5907878)
+
+chrome!IsSandboxedProcess+0x24fc3e:
+00007ff6`a59079be 488b8c2470010000 mov     rcx,qword ptr [rsp+170h]
+00007ff6`a59079c6 4831e1          xor     rcx,rsp
+00007ff6`a59079c9 e8022feeff      call    chrome!IsSandboxedProcess+0x132b50 (00007ff6`a57ea8d0)
+00007ff6`a59079ce cc              int     3
+00007ff6`a59079cf cc              int     3
+00007ff6`a59079d0 4157            push    r15
+00007ff6`a59079d2 4156            push    r14
+00007ff6`a59079d4 56              push    rsi
+00007ff6`a59079d5 57              push    rdi
+00007ff6`a59079d6 53              push    rbx
+00007ff6`a59079d7 4881ecd0010000  sub     rsp,1D0h
+00007ff6`a59079de 488b055b460800  mov     rax,qword ptr [chrome!IsSandboxedProcess+0x2d42c0 (00007ff6`a598c040)]
+00007ff6`a59079e5 4831e0          xor     rax,rsp
+00007ff6`a59079e8 48898424c8010000 mov     qword ptr [rsp+1C8h],rax
+00007ff6`a59079f0 4d85c0          test    r8,r8
+00007ff6`a59079f3 0f844a010000    je      chrome!IsSandboxedProcess+0x24fdc3 (00007ff6`a5907b43)
+
+chrome!IsSandboxedProcess+0x24fc79:
+00007ff6`a59079f9 4c89cb          mov     rbx,r9
+00007ff6`a59079fc 4c89c6          mov     rsi,r8
+00007ff6`a59079ff 4889d7          mov     rdi,rdx
+00007ff6`a5907a02 4989ce          mov     r14,rcx
+00007ff6`a5907a05 0f57c0          xorps   xmm0,xmm0
+00007ff6`a5907a08 4c8dbc2470010000 lea     r15,[rsp+170h]
+00007ff6`a5907a10 410f2907        movaps  xmmword ptr [r15],xmm0
+00007ff6`a5907a14 49c7471000000000 mov     qword ptr [r15+10h],0
+00007ff6`a5907a1c 4883c110        add     rcx,10h
+00007ff6`a5907a20 4c8d442440      lea     r8,[rsp+40h]
+00007ff6`a5907a25 498910          mov     qword ptr [r8],rdx
+00007ff6`a5907a28 49897008        mov     qword ptr [r8+8],rsi
+00007ff6`a5907a2c 4c89fa          mov     rdx,r15
+00007ff6`a5907a2f e8ecc1feff      call    chrome!IsSandboxedProcess+0x23bea0 (00007ff6`a58f3c20)
+00007ff6`a5907a34 498b07          mov     rax,qword ptr [r15]
+00007ff6`a5907a37 493b4708        cmp     rax,qword ptr [r15+8]
+00007ff6`a5907a3b 0f844b010000    je      chrome!IsSandboxedProcess+0x24fe0c (00007ff6`a5907b8c)
+
+chrome!IsSandboxedProcess+0x24fcc1:
+00007ff6`a5907a41 483938          cmp     qword ptr [rax],rdi
+00007ff6`a5907a44 0f84c2010000    je      chrome!IsSandboxedProcess+0x24fe8c (00007ff6`a5907c0c)
+
+chrome!IsSandboxedProcess+0x24fcca:
+00007ff6`a5907a4a b902000000      mov     ecx,2
+00007ff6`a5907a4f e89cd6edff      call    chrome!IsSandboxedProcess+0x12d370 (00007ff6`a57e50f0)
+00007ff6`a5907a54 84c0            test    al,al
+00007ff6`a5907a56 0f84c3000000    je      chrome!IsSandboxedProcess+0x24fd9f (00007ff6`a5907b1f)
+
+chrome!IsSandboxedProcess+0x24fcdc:
+00007ff6`a5907a5c 488d15adf00600  lea     rdx,[chrome!IsSandboxedProcess+0x2bed90 (00007ff6`a5976b10)]
+00007ff6`a5907a63 488d4c2440      lea     rcx,[rsp+40h]
+00007ff6`a5907a68 41b867000000    mov     r8d,67h
+00007ff6`a5907a6e 41b902000000    mov     r9d,2
+00007ff6`a5907a74 e8b7aacbff      call    chrome+0x2530 (00007ff6`a55c2530)
+00007ff6`a5907a79 488d5c2450      lea     rbx,[rsp+50h]
+00007ff6`a5907a7e 488d8424a8010000 lea     rax,[rsp+1A8h]
+00007ff6`a5907a86 488938          mov     qword ptr [rax],rdi
+00007ff6`a5907a89 488d0d50fdeaff  lea     rcx,[chrome!IsSandboxedProcess+0xffa60 (00007ff6`a57b77e0)]
+00007ff6`a5907a90 48894808        mov     qword ptr [rax+8],rcx
+00007ff6`a5907a94 48897010        mov     qword ptr [rax+10h],rsi
+00007ff6`a5907a98 48894818        mov     qword ptr [rax+18h],rcx
+00007ff6`a5907a9c 4c8d842498010000 lea     r8,[rsp+198h]
+00007ff6`a5907aa4 498900          mov     qword ptr [r8],rax
+00007ff6`a5907aa7 49c7400802000000 mov     qword ptr [r8+8],2
+00007ff6`a5907aaf 488d0532f10600  lea     rax,[chrome!IsSandboxedProcess+0x2bee68 (00007ff6`a5976be8)]
+00007ff6`a5907ab6 488d942488010000 lea     rdx,[rsp+188h]
+00007ff6`a5907abe 488902          mov     qword ptr [rdx],rax
+00007ff6`a5907ac1 48c7420831000000 mov     qword ptr [rdx+8],31h
+
+chrome!IsSandboxedProcess+0x24fd49:
+00007ff6`a5907ac9 488d742428      lea     rsi,[rsp+28h]
+00007ff6`a5907ace 4889f1          mov     rcx,rsi
+00007ff6`a5907ad1 e83ab3dfff      call    chrome!IsSandboxedProcess+0x4b090 (00007ff6`a5702e10)
+00007ff6`a5907ad6 4c0fbe4617      movsx   r8,byte ptr [rsi+17h]
+00007ff6`a5907adb 4d85c0          test    r8,r8
+00007ff6`a5907ade 790a            jns     chrome!IsSandboxedProcess+0x24fd6a (00007ff6`a5907aea)
+
+chrome!IsSandboxedProcess+0x24fd60:
+00007ff6`a5907ae0 4c8b442430      mov     r8,qword ptr [rsp+30h]
+00007ff6`a5907ae5 488b742428      mov     rsi,qword ptr [rsp+28h]
+
+chrome!IsSandboxedProcess+0x24fd6a:
+00007ff6`a5907aea 4889d9          mov     rcx,rbx
+00007ff6`a5907aed 4889f2          mov     rdx,rsi
+00007ff6`a5907af0 e8dbd0ddff      call    chrome!IsSandboxedProcess+0x2ce50 (00007ff6`a56e4bd0)
+00007ff6`a5907af5 807c243f00      cmp     byte ptr [rsp+3Fh],0
+00007ff6`a5907afa 7919            jns     chrome!IsSandboxedProcess+0x24fd95 (00007ff6`a5907b15)
+
+chrome!IsSandboxedProcess+0x24fd7c:
+00007ff6`a5907afc 48baffffffffffffff7f mov rdx,7FFFFFFFFFFFFFFFh
+00007ff6`a5907b06 4823542438      and     rdx,qword ptr [rsp+38h]
+00007ff6`a5907b0b 488b4c2428      mov     rcx,qword ptr [rsp+28h]
+00007ff6`a5907b10 e8cb3bdbff      call    chrome!IsSandboxedProcess+0x3960 (00007ff6`a56bb6e0)
+
+chrome!IsSandboxedProcess+0x24fd95:
+00007ff6`a5907b15 488d4c2440      lea     rcx,[rsp+40h]
+00007ff6`a5907b1a e8510fd0ff      call    chrome+0x48a70 (00007ff6`a5608a70)
+
+chrome!IsSandboxedProcess+0x24fd9f:
+00007ff6`a5907b1f 31f6            xor     esi,esi
+
+chrome!IsSandboxedProcess+0x24fda1:
+00007ff6`a5907b21 488b8c2470010000 mov     rcx,qword ptr [rsp+170h]
+00007ff6`a5907b29 4885c9          test    rcx,rcx
+00007ff6`a5907b2c 7431            je      chrome!IsSandboxedProcess+0x24fddf (00007ff6`a5907b5f)
+
+chrome!IsSandboxedProcess+0x24fdae:
+00007ff6`a5907b2e 488b842478010000 mov     rax,qword ptr [rsp+178h]
+
+chrome!IsSandboxedProcess+0x24fdb6:
+00007ff6`a5907b36 4839c8          cmp     rax,rcx
+00007ff6`a5907b39 740c            je      chrome!IsSandboxedProcess+0x24fdc7 (00007ff6`a5907b47)
+
+chrome!IsSandboxedProcess+0x24fdbb:
+00007ff6`a5907b3b 4883c0f0        add     rax,0FFFFFFFFFFFFFFF0h
+00007ff6`a5907b3f 75f5            jne     chrome!IsSandboxedProcess+0x24fdb6 (00007ff6`a5907b36)
+
+chrome!IsSandboxedProcess+0x24fdc1:
+00007ff6`a5907b41 0f0b            ud2
+
+chrome!IsSandboxedProcess+0x24fdc3:
+00007ff6`a5907b43 31f6            xor     esi,esi
+00007ff6`a5907b45 eb18            jmp     chrome!IsSandboxedProcess+0x24fddf (00007ff6`a5907b5f)
+
+chrome!IsSandboxedProcess+0x24fdc7:
+00007ff6`a5907b47 48898c2478010000 mov     qword ptr [rsp+178h],rcx
+00007ff6`a5907b4f 488b942480010000 mov     rdx,qword ptr [rsp+180h]
+00007ff6`a5907b57 4829ca          sub     rdx,rcx
+00007ff6`a5907b5a e8813bdbff      call    chrome!IsSandboxedProcess+0x3960 (00007ff6`a56bb6e0)
+
+chrome!IsSandboxedProcess+0x24fddf:
+00007ff6`a5907b5f 488b8424c8010000 mov     rax,qword ptr [rsp+1C8h]
+00007ff6`a5907b67 4831e0          xor     rax,rsp
+00007ff6`a5907b6a 488b0dcf440800  mov     rcx,qword ptr [chrome!IsSandboxedProcess+0x2d42c0 (00007ff6`a598c040)]
+00007ff6`a5907b71 4839c1          cmp     rcx,rax
+00007ff6`a5907b74 0f85b2000000    jne     chrome!IsSandboxedProcess+0x24feac (00007ff6`a5907c2c)
+
+chrome!IsSandboxedProcess+0x24fdfa:
+00007ff6`a5907b7a 4889f0          mov     rax,rsi
+00007ff6`a5907b7d 4881c4d0010000  add     rsp,1D0h
+00007ff6`a5907b84 5b              pop     rbx
+00007ff6`a5907b85 5f              pop     rdi
+00007ff6`a5907b86 5e              pop     rsi
+00007ff6`a5907b87 415e            pop     r14
+00007ff6`a5907b89 415f            pop     r15
+00007ff6`a5907b8b c3              ret
+
+chrome!IsSandboxedProcess+0x24fe0c:
+00007ff6`a5907b8c b902000000      mov     ecx,2
+00007ff6`a5907b91 e85ad5edff      call    chrome!IsSandboxedProcess+0x12d370 (00007ff6`a57e50f0)
+00007ff6`a5907b96 84c0            test    al,al
+00007ff6`a5907b98 7485            je      chrome!IsSandboxedProcess+0x24fd9f (00007ff6`a5907b1f)
+
+chrome!IsSandboxedProcess+0x24fe1a:
+00007ff6`a5907b9a 488d156fef0600  lea     rdx,[chrome!IsSandboxedProcess+0x2bed90 (00007ff6`a5976b10)]
+00007ff6`a5907ba1 488d4c2440      lea     rcx,[rsp+40h]
+00007ff6`a5907ba6 41b85f000000    mov     r8d,5Fh
+00007ff6`a5907bac 41b902000000    mov     r9d,2
+00007ff6`a5907bb2 e879a9cbff      call    chrome+0x2530 (00007ff6`a55c2530)
+00007ff6`a5907bb7 488d5c2450      lea     rbx,[rsp+50h]
+00007ff6`a5907bbc 488d8424a8010000 lea     rax,[rsp+1A8h]
+00007ff6`a5907bc4 488938          mov     qword ptr [rax],rdi
+00007ff6`a5907bc7 488d0d12fceaff  lea     rcx,[chrome!IsSandboxedProcess+0xffa60 (00007ff6`a57b77e0)]
+00007ff6`a5907bce 48894808        mov     qword ptr [rax+8],rcx
+00007ff6`a5907bd2 48897010        mov     qword ptr [rax+10h],rsi
+00007ff6`a5907bd6 48894818        mov     qword ptr [rax+18h],rcx
+00007ff6`a5907bda 4c8d842498010000 lea     r8,[rsp+198h]
+00007ff6`a5907be2 498900          mov     qword ptr [r8],rax
+00007ff6`a5907be5 49c7400802000000 mov     qword ptr [r8+8],2
+00007ff6`a5907bed 488d05bcef0600  lea     rax,[chrome!IsSandboxedProcess+0x2bee30 (00007ff6`a5976bb0)]
+00007ff6`a5907bf4 488d942488010000 lea     rdx,[rsp+188h]
+00007ff6`a5907bfc 488902          mov     qword ptr [rdx],rax
+00007ff6`a5907bff 48c7420833000000 mov     qword ptr [rdx+8],33h
+00007ff6`a5907c07 e9bdfeffff      jmp     chrome!IsSandboxedProcess+0x24fd49 (00007ff6`a5907ac9)
+
+chrome!IsSandboxedProcess+0x24fe8c:
+00007ff6`a5907c0c 4c8b4008        mov     r8,qword ptr [rax+8]
+00007ff6`a5907c10 4c89f1          mov     rcx,r14
+00007ff6`a5907c13 4889fa          mov     rdx,rdi
+00007ff6`a5907c16 4989d9          mov     r9,rbx
+00007ff6`a5907c19 e8f2fbffff      call    chrome!IsSandboxedProcess+0x24fa90 (00007ff6`a5907810)
+00007ff6`a5907c1e 31f6            xor     esi,esi
+00007ff6`a5907c20 4885c0          test    rax,rax
+00007ff6`a5907c23 480f4ff0        cmovg   rsi,rax
+00007ff6`a5907c27 e9f5feffff      jmp     chrome!IsSandboxedProcess+0x24fda1 (00007ff6`a5907b21)
+
+chrome!IsSandboxedProcess+0x24feac:
+00007ff6`a5907c2c 488b8c24c8010000 mov     rcx,qword ptr [rsp+1C8h]
+00007ff6`a5907c34 4831e1          xor     rcx,rsp
+00007ff6`a5907c37 e8942ceeff      call    chrome!IsSandboxedProcess+0x132b50 (00007ff6`a57ea8d0)
+00007ff6`a5907c3c cc              int     3
+00007ff6`a5907c3d cc              int     3
+00007ff6`a5907c3e cc              int     3
+00007ff6`a5907c3f cc              int     3
+00007ff6`a5907c40 56              push    rsi
+00007ff6`a5907c41 57              push    rdi
+00007ff6`a5907c42 4883ec28        sub     rsp,28h
+00007ff6`a5907c46 89d7            mov     edi,edx
+00007ff6`a5907c48 4889ce          mov     rsi,rcx
+00007ff6`a5907c4b 4883c110        add     rcx,10h
+00007ff6`a5907c4f e8ecaafeff      call    chrome!IsSandboxedProcess+0x23a9c0 (00007ff6`a58f2740)
+00007ff6`a5907c54 40f6c701        test    dil,1
+00007ff6`a5907c58 740d            je      chrome!IsSandboxedProcess+0x24fee7 (00007ff6`a5907c67)
+
+chrome!IsSandboxedProcess+0x24feda:
+00007ff6`a5907c5a baa0000000      mov     edx,0A0h
+00007ff6`a5907c5f 4889f1          mov     rcx,rsi
+00007ff6`a5907c62 e8793adbff      call    chrome!IsSandboxedProcess+0x3960 (00007ff6`a56bb6e0)
+
+chrome!IsSandboxedProcess+0x24fee7:
+00007ff6`a5907c67 4889f0          mov     rax,rsi
+00007ff6`a5907c6a 4883c428        add     rsp,28h
+00007ff6`a5907c6e 5f              pop     rdi
+00007ff6`a5907c6f 5e              pop     rsi
+00007ff6`a5907c70 c3              ret
+quit:
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\atlmfc.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\concurrency.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\cpp_rest.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\ObjectiveC.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\stl.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\Windows.Data.Json.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\Windows.Devices.Geolocation.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\Windows.Devices.Sensors.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\Windows.Media.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\windows.natvis'
+NatVis script unloaded from 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\Visualizers\winrt.natvis'

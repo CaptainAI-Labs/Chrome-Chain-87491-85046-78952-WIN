@@ -1,17 +1,19 @@
-[17480:7784:1020/234727.807:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
-[17480:7784:1020/234727.807:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
-[16820:21232:1020/234727.833:ERROR:ui\gl\direct_composition_support.cc:625] AMD VideoProcessorGetOutputExtension failed: 未指定的错误 (0x80004005)
-[460:12880:1020/234727.859:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
-[460:12880:1020/234727.859:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
-[22512:15272:1020/234727.879:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
-[22512:15272:1020/234727.879:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
-[14968:9808:1020/234727.952:INFO:CONSOLE:40] "GCDBG addrof 117d191 117d261 sane=true", source: http://127.0.0.1:8765/stage1w.js (40)
-[14968:9808:1020/234727.952:INFO:CONSOLE:43] "ST1 begin", source: http://127.0.0.1:8765/stage1w.js (43)
-[14968:9808:1020/234727.953:INFO:CONSOLE:64] "ST1 reclaim hit=14", source: http://127.0.0.1:8765/stage1w.js (64)
-[14968:9808:1020/234727.953:INFO:CONSOLE:66] "ST1 fakeobj ok", source: http://127.0.0.1:8765/stage1w.js (66)
-[14968:9808:1020/234727.953:INFO:CONSOLE:75] "ST1 cage_rw ready", source: http://127.0.0.1:8765/stage1w.js (75)
-[14968:9808:1020/234727.953:INFO:CONSOLE:79] "ST1 proof 13.37=13.37", source: http://127.0.0.1:8765/stage1w.js (79)
-[14968:9808:1020/234727.967:INFO:CONSOLE:147] "MAIN start", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
-[14968:9808:1020/234727.973:INFO:CONSOLE:56] "BOOT inst a/d ok", source: http://127.0.0.1:8765/pocwin_full_w4.js (56)
-[14968:9808:1020/234727.973:INFO:CONSOLE:61] "BOOT pads compiled", source: http://127.0.0.1:8765/pocwin_full_w4.js (61)
-[14968:9808:1020/234727.974:INFO:CONSOLE:147] "MAIN boot done", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
+[10260:17072:1111/231148.123:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
+[10260:17072:1111/231148.123:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
+[20788:11280:1111/231148.135:ERROR:ui\gl\direct_composition_support.cc:625] AMD VideoProcessorGetOutputExtension failed: 未指定的错误 (0x80004005)
+[14892:11412:1111/231148.184:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
+[14892:11412:1111/231148.184:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
+[15504:17404:1111/231148.204:WARNING:content\child\runtime_features.cc:563] SharedStorage cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI in addition.
+[15504:17404:1111/231148.204:WARNING:content\child\runtime_features.cc:573] AttributionReporting cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement in addition.
+[20540:16704:1111/231148.313:INFO:CONSOLE:40] "GCDBG addrof 117d3dd 117d4ad sane=true", source: http://127.0.0.1:8765/stage1w.js (40)
+[20540:16704:1111/231148.314:INFO:CONSOLE:43] "ST1 begin", source: http://127.0.0.1:8765/stage1w.js (43)
+[20540:16704:1111/231148.315:INFO:CONSOLE:64] "ST1 reclaim hit=14", source: http://127.0.0.1:8765/stage1w.js (64)
+[20540:16704:1111/231148.315:INFO:CONSOLE:66] "ST1 fakeobj ok", source: http://127.0.0.1:8765/stage1w.js (66)
+[20540:16704:1111/231148.315:INFO:CONSOLE:75] "ST1 cage_rw ready", source: http://127.0.0.1:8765/stage1w.js (75)
+[20540:16704:1111/231148.315:INFO:CONSOLE:79] "ST1 proof 13.37=13.37", source: http://127.0.0.1:8765/stage1w.js (79)
+[20540:16704:1111/231148.328:INFO:CONSOLE:147] "MAIN start", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
+[20540:16704:1111/231148.337:INFO:CONSOLE:56] "BOOT inst a/d ok", source: http://127.0.0.1:8765/pocwin_full_w4.js (56)
+[20540:16704:1111/231148.338:INFO:CONSOLE:61] "BOOT pads compiled", source: http://127.0.0.1:8765/pocwin_full_w4.js (61)
+[20540:16704:1111/231148.338:INFO:CONSOLE:147] "MAIN boot done", source: http://127.0.0.1:8765/pocwin_full_w4.js (147)
+[15240:3636:1111/231154.482:WARNING:net\extras\sqlite\sqlite_persistent_store_backend_base.cc:181] Failed to post task from FlushAndNotifyInBackground@net\extras\sqlite\sqlite_persistent_store_backend_base.cc:231 to client_task_runner_.
+[15240:3636:1111/231154.482:WARNING:net\extras\sqlite\sqlite_persistent_store_backend_base.cc:181] Failed to post task from FlushAndNotifyInBackground@net\extras\sqlite\sqlite_persistent_store_backend_base.cc:231 to client_task_runner_.
